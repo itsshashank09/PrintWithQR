@@ -1,0 +1,16 @@
+# Dependencies and build output
+node_modules/
+dist/
+build/
+Output/
+.vercel/
+
+# Local environment files and databases
+.env
+.env.*
+!.env.example
+backend/database.db
+agent/config.json
+
+# Uploaded customer documents
+backend/uploads/

@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>QRPrintPlatform Print Preview</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      background-color: white;
+    }
+    .page-container {
+      width: 100%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      page-break-after: always;
+      box-sizing: border-box;
+    }
+    canvas, img {
+      display: block;
+      width: 100%;
+      height: auto;
+      max-width: 100%;
+    }
+  </style>
+</head>
+<body>
+  <div id="pages-container"></div>
+
+  <script>
+    // Set PDF.js worker
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js';
+
+    // Parse Query Parameters
+    const params = new URLSearchParams(window.location.search);
+    const fileUrl = params.get('file');
+    const printType = params.get('printType') || 'bw'; // bw or color
+    const paperSize = params.get('paperSize') || 'A4'; // A4 or Letter
+    const printRangeType = params.get('rangeType') || 'all'; // all or custom
+    const printRangeCustom = params.get('rangeCustom') || ''; // e.g. 1-3, 5
+
+    // Helper to parse custom page range strings
+    const parsePageRange = (rangeStr, maxPages) => {
+      if (!rangeStr || !rangeStr.trim()) return [];
+      const pages = new Set();
+      const parts = rangeStr.split(',');
+      for (let part of parts) {
+        part = part.trim();
+        if (part.includes('-')) {
+          const [startStr, endStr] = part.split('-');
+          const start = parseInt(startStr);
+          const end = parseInt(endStr);
+          if (!isNaN(start) && !isNaN(end) && start <= end) {
+            for (let i = start; i <= end; i++) {
+              if (i >= 1 && i <= maxPages) pages.add(i);
+            }
+          }
+        } else {
+          const page = parseInt(part);
+          if (!isNaN(page) && page >= 1 && page <= maxPages) {
+            pages.add(page);
+          }
+        }
+      }
+      return Array.from(pages).sort((a, b) => a - b);
+    };
+
+    const isImage = fileUrl && !fileUrl.toLowerCase().endsWith('.pdf');
+
+    if (isImage) {
+      // -------------------------------------------------------------
+      // IMAGE RENDERING
+      // -------------------------------------------------------------
+      const container = document.getElementById('pages-container');
+      const pageDiv = document.createElement('div');
+      pageDiv.className = 'page-container';
+      
+      const img = document.createElement('img');
+      img.src = fileUrl;
+      
+      // Inject CSS print configuration styles for images
+      const style = document.createElement('style');
+      style.innerHTML = `
+        @page {
+          size: ${paperSize === 'Letter' ? 'letter' : 'A4'} portrait;
+          margin: 0;
+        }
+        @media print {
+          img {
+            ${printType === 'bw' ? 'filter: grayscale(100%) !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important;' : ''}
+          }
+        }
+      `;
+      document.head.appendChild(style);
+      
+      img.onload = () => {
+        pageDiv.appendChild(img);
+        container.appendChild(pageDiv);
+        if (window.parent && window.parent.onPrintFrameReady) {
+          window.parent.onPrintFrameReady();
+        }
+      };
+      img.onerror = () => {
+        console.error("Error loading image for print.");
+      };
+    } else {
+      // -------------------------------------------------------------
+      // PDF.JS RENDERING
+      // -------------------------------------------------------------
+      // Inject CSS print configuration styles for PDF canvas elements
+      const style = document.createElement('style');
+      style.innerHTML = `
+        @page {
+          size: ${paperSize === 'Letter' ? 'letter' : 'A4'} portrait;
+          margin: 0;
+        }
+        @media print {
+          canvas {
+            ${printType === 'bw' ? 'filter: grayscale(100%) !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important;' : ''}
+          }
+        }
+      `;
+      document.head.appendChild(style);
+
+      const loadAndRenderPdf = async () => {
+        if (!fileUrl) return;
+        try {
+          const loadingTask = pdfjsLib.getDocument(fileUrl);
+          const pdf = await loadingTask.promise;
+          const totalPages = pdf.numPages;
+
+          // Determine page range to print
+          let pagesToRender = [];
+          if (printRangeType === 'custom' && printRangeCustom) {
+            pagesToRender = parsePageRange(printRangeCustom, totalPages);
+          } else {
+            for (let i = 1; i <= totalPages; i++) {
+              pagesToRender.push(i);
+            }
+          }
+
+          const container = document.getElementById('pages-container');
+
+          // Render selected pages sequentially for spool clarity
+          for (const pageNum of pagesToRender) {
+            const page = await pdf.getPage(pageNum);
+            const viewport = page.getViewport({ scale: 2.0 }); // High-quality 2x print scale
+
+            const pageDiv = document.createElement('div');
+            pageDiv.className = 'page-container';
+
+            const canvas = document.createElement('canvas');
+            const context = canvas.getContext('2d');
+            canvas.height = viewport.height;
+            canvas.width = viewport.width;
+
+            pageDiv.appendChild(canvas);
+            container.appendChild(pageDiv);
+
+            await page.render({
+              canvasContext: context,
+              viewport: viewport
+            }).promise;
+          }
+
+          // Callback to parent window when printing elements are ready in DOM
+          if (window.parent && window.parent.onPrintFrameReady) {
+            window.parent.onPrintFrameReady();
+          }
+        } catch (err) {
+          console.error("Error rendering PDF pages:", err);
+        }
+      };
+
+      loadAndRenderPdf();
+    }
+  </script>
+</body>
+</html>
