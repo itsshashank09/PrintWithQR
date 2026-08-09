@@ -1,0 +1,974 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap');
+
+:root {
+  /* Warm Gray Neomorphic Palette (matching uploaded image theme) */
+  --bg-color: #e0e0e0;
+  --bg-gradient: linear-gradient(135deg, #e0e0e0 0%, #d5d5d5 100%);
+  --shadow-dark: 9px 9px 18px #a3a3a3, 4px 4px 6px #b0b0b0;
+  --shadow-light: -9px -9px 18px #ffffff, -4px -4px 6px #ffffff;
+  --inset-shadow: inset 6px 6px 12px #a3a3a3, inset -6px -6px 12px #ffffff;
+  --inset-shadow-active: inset 3px 3px 6px #a3a3a3, inset -3px -3px 6px #ffffff;
+  
+  --text-color: #1a1a1a;
+  --text-secondary: #555555;
+  --border-color: rgba(255, 255, 255, 0.5);
+  
+  /* Accents - Vibrant Grass Green (matching battery/progress indicator) */
+  --accent-color: #00871e;
+  --accent-light: #e8f5e9;
+  --accent-hover: #006c17;
+  --accent-gradient: linear-gradient(135deg, #00a024 0%, #00871e 100%);
+  --success-color: #00871e;
+  --warning-color: #f59e0b;
+  --danger-color: #ef4444;
+  --info-color: #3b82f6;
+
+  /* Card and input defaults */
+  --border-radius: 24px;
+  --font-family: 'Outfit', sans-serif;
+  
+  /* Transition speed */
+  --transition-speed: 0.3s;
+}
+
+.dark-theme {
+  /* Dark Theme Neomorphic Palette with Vibrant Neon Green Accents */
+  --bg-color: #1e222b;
+  --bg-gradient: linear-gradient(135deg, #1e222b 0%, #15181e 100%);
+  --shadow-dark: 9px 9px 18px #0f1116, 4px 4px 6px #0f1116;
+  --shadow-light: -9px -9px 18px #2d3340, -4px -4px 6px #2d3340;
+  --inset-shadow: inset 6px 6px 12px #0f1116, inset -6px -6px 12px #2d3340;
+  --inset-shadow-active: inset 3px 3px 6px #0f1116, inset -3px -3px 6px #2d3340;
+  
+  --text-color: #f1f5f9;
+  --text-secondary: #94a3b8;
+  --border-color: rgba(255, 255, 255, 0.05);
+  
+  /* Accents in dark theme */
+  --accent-color: #10b981;
+  --accent-light: rgba(16, 185, 129, 0.1);
+  --accent-hover: #059669;
+  --accent-gradient: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  
+  --success-color: #10b981;
+  --warning-color: #fbbf24;
+  --danger-color: #f87171;
+  --info-color: #60a5fa;
+}
+
+/* Reset and Global Styles */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: var(--font-family);
+  background: var(--bg-gradient);
+  background-attachment: fixed;
+  color: var(--text-color);
+  min-height: 100vh;
+  transition: background var(--transition-speed), color var(--transition-speed);
+}
+
+/* Neomorphic Containers */
+.neo-container {
+  max-width: 1600px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.neo-card {
+  background: var(--bg-color);
+  border-radius: var(--border-radius);
+  box-shadow: var(--shadow-light), var(--shadow-dark);
+  border: 1px solid var(--border-color);
+  padding: 25px;
+  margin-bottom: 25px;
+  transition: all var(--transition-speed);
+}
+
+.neo-card-inset {
+  background: var(--bg-color);
+  border-radius: var(--border-radius);
+  box-shadow: var(--inset-shadow);
+  border: 1px solid var(--border-color);
+  padding: 25px;
+  margin-bottom: 25px;
+}
+
+.neo-card:hover {
+  transform: translateY(-2px);
+}
+
+/* Neomorphic Form Controls */
+.neo-input-group {
+  margin-bottom: 20px;
+  display: flex;
+  flex-direction: column;
+}
+
+.neo-label {
+  font-weight: 500;
+  font-size: 0.95rem;
+  margin-bottom: 8px;
+  color: var(--text-color);
+  padding-left: 5px;
+}
+
+.neo-input {
+  width: 100%;
+  padding: 14px 18px;
+  border: 1px solid var(--border-color);
+  border-radius: 15px;
+  background: var(--bg-color);
+  color: var(--text-color);
+  box-shadow: var(--inset-shadow);
+  outline: none;
+  font-family: var(--font-family);
+  font-size: 1rem;
+  transition: box-shadow var(--transition-speed);
+}
+
+.neo-input:focus {
+  box-shadow: inset 5px 5px 10px #a3a3a3, inset -5px -5px 10px #ffffff;
+}
+
+.dark-theme .neo-input:focus {
+  box-shadow: inset 5px 5px 10px #0f1116, inset -5px -5px 10px #2d3340;
+}
+
+.neo-select {
+  width: 100%;
+  padding: 14px 18px;
+  border: 1px solid var(--border-color);
+  border-radius: 15px;
+  background: var(--bg-color);
+  color: var(--text-color);
+  box-shadow: var(--inset-shadow);
+  outline: none;
+  font-family: var(--font-family);
+  font-size: 1rem;
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%231a1a1a' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 18px center;
+  background-size: 16px;
+  padding-right: 45px;
+}
+
+.dark-theme .neo-select {
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%23f1f5f9' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+}
+
+/* Neomorphic Buttons */
+.neo-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 24px;
+  border: 1px solid var(--border-color);
+  border-radius: 15px;
+  background: var(--bg-color);
+  color: var(--text-color);
+  box-shadow: var(--shadow-light), var(--shadow-dark);
+  font-family: var(--font-family);
+  font-weight: 600;
+  font-size: 0.95rem;
+  cursor: pointer;
+  outline: none;
+  transition: all var(--transition-speed);
+}
+
+.neo-btn:hover {
+  transform: translateY(-1px);
+}
+
+.neo-btn:active, .neo-btn.active {
+  box-shadow: var(--inset-shadow);
+  transform: translateY(1px);
+}
+
+.neo-btn-primary {
+  background: var(--accent-gradient);
+  color: #ffffff;
+  box-shadow: 4px 4px 10px rgba(0, 135, 30, 0.25), -4px -4px 10px rgba(255, 255, 255, 0.5);
+  border: none;
+}
+
+.neo-btn-primary:hover {
+  background: var(--accent-hover);
+  box-shadow: 4px 4px 12px rgba(0, 135, 30, 0.35);
+}
+
+.neo-btn-primary:active {
+  box-shadow: inset 4px 4px 8px rgba(0, 0, 0, 0.25);
+}
+
+.neo-btn-danger {
+  color: #ffffff;
+  background: var(--danger-color);
+  border: none;
+  box-shadow: 4px 4px 10px rgba(239, 68, 68, 0.3);
+}
+
+.neo-btn-danger:hover {
+  background: #dc2626;
+}
+
+.neo-btn-success {
+  color: #ffffff;
+  background: var(--success-color);
+  border: none;
+  box-shadow: 4px 4px 10px rgba(16, 185, 129, 0.3);
+}
+
+.neo-btn-success:hover {
+  background: #059669;
+}
+
+/* Custom Neomorphic Switches / Checkboxes */
+.neo-switch-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 18px;
+}
+
+.neo-switch-label {
+  font-weight: 500;
+  color: var(--text-color);
+}
+
+.neo-switch {
+  position: relative;
+  display: inline-block;
+  width: 55px;
+  height: 28px;
+  cursor: pointer;
+}
+
+.neo-switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.neo-slider {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: var(--bg-color);
+  box-shadow: var(--inset-shadow);
+  border-radius: 34px;
+  transition: .4s;
+  border: 1px solid var(--border-color);
+}
+
+.neo-slider:before {
+  position: absolute;
+  content: "";
+  height: 20px;
+  width: 20px;
+  left: 3px;
+  bottom: 3px;
+  background-color: var(--text-color);
+  border-radius: 50%;
+  transition: .4s;
+  box-shadow: var(--shadow-light), var(--shadow-dark);
+}
+
+input:checked + .neo-slider {
+  background-color: var(--accent-light);
+}
+
+input:checked + .neo-slider:before {
+  transform: translateX(27px);
+  background-color: var(--accent-color);
+}
+
+/* Toggle tabs (segmented control) */
+.neo-tabs {
+  display: flex;
+  background: var(--bg-color);
+  box-shadow: var(--inset-shadow);
+  padding: 5px;
+  border-radius: 15px;
+  margin-bottom: 20px;
+  border: 1px solid var(--border-color);
+}
+
+.neo-tab {
+  flex: 1;
+  text-align: center;
+  padding: 10px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all var(--transition-speed);
+}
+
+.neo-tab.active {
+  background: var(--bg-color);
+  box-shadow: var(--shadow-light), var(--shadow-dark);
+  color: var(--accent-color);
+}
+
+/* File Upload Area */
+.neo-upload-area {
+  border: 2px dashed var(--text-secondary);
+  border-radius: var(--border-radius);
+  background: var(--bg-color);
+  box-shadow: var(--inset-shadow);
+  padding: 40px 20px;
+  text-align: center;
+  cursor: pointer;
+  transition: border-color var(--transition-speed);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.neo-upload-area.dragging {
+  border-color: var(--accent-color);
+}
+
+.neo-upload-icon {
+  color: var(--accent-color);
+  animation: float 3s ease-in-out infinite;
+}
+
+@keyframes float {
+  0% { transform: translateY(0px); }
+  50% { transform: translateY(-8px); }
+  100% { transform: translateY(0px); }
+}
+
+/* Preview Box */
+.neo-preview-box {
+  background: var(--bg-color);
+  box-shadow: var(--inset-shadow);
+  border-radius: var(--border-radius);
+  padding: 15px;
+  height: 380px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: auto;
+  position: relative;
+  border: 1px solid var(--border-color);
+}
+
+/* Badge and status pill */
+.neo-badge {
+  display: inline-block;
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  box-shadow: var(--shadow-light), var(--shadow-dark);
+  border: 1px solid var(--border-color);
+}
+
+.status-pending {
+  background: rgba(245, 158, 11, 0.15);
+  color: var(--warning-color);
+}
+
+.status-printing {
+  background: rgba(59, 130, 246, 0.15);
+  color: var(--info-color);
+}
+
+.status-completed {
+  background: rgba(16, 185, 129, 0.15);
+  color: var(--success-color);
+}
+
+.status-cancelled {
+  background: rgba(239, 68, 68, 0.15);
+  color: var(--danger-color);
+}
+
+/* Theme Toggle Button (Flotat) */
+.theme-toggle-fab {
+  position: fixed;
+  bottom: 25px;
+  right: 25px;
+  z-index: 1000;
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  background: var(--bg-color);
+  box-shadow: var(--shadow-light), var(--shadow-dark);
+  border: 1px solid var(--border-color);
+  color: var(--text-color);
+  transition: all var(--transition-speed);
+}
+
+.theme-toggle-fab:active {
+  box-shadow: var(--inset-shadow);
+}
+
+/* Grid & Layout Utilities */
+.neo-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 25px;
+}
+
+.dashboard-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 20px;
+  margin-bottom: 25px;
+}
+
+.stat-card {
+  text-align: center;
+  padding: 20px;
+}
+
+.stat-val {
+  font-size: 2.2rem;
+  font-weight: 700;
+  color: var(--accent-color);
+  margin-bottom: 5px;
+}
+
+.stat-label {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  font-weight: 600;
+}
+
+/* Responsive Table */
+.neo-table-wrapper {
+  overflow-x: visible;
+  border-radius: var(--border-radius);
+  box-shadow: var(--inset-shadow);
+  padding: 10px;
+  background: var(--bg-color);
+  border: 1px solid var(--border-color);
+}
+
+.neo-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.neo-table th {
+  padding: 15px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  border-bottom: 1px solid var(--border-color);
+}
+
+.neo-table td {
+  padding: 15px;
+  border-bottom: 1px solid var(--border-color);
+  color: var(--text-color);
+  font-size: 0.95rem;
+}
+
+.neo-table tr:last-child td {
+  border-bottom: none;
+}
+
+/* Header UI */
+.neo-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 0;
+  margin-bottom: 30px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.logo-container {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.logo-text {
+  font-size: 1.6rem;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+}
+
+/* Typography styles */
+h1 { font-size: 2.4rem; font-weight: 700; margin-bottom: 10px; }
+h2 { font-size: 1.8rem; font-weight: 600; margin-bottom: 15px; }
+h3 { font-size: 1.3rem; font-weight: 600; margin-bottom: 10px; }
+p { color: var(--text-secondary); line-height: 1.6; margin-bottom: 15px; }
+
+/* Custom Scrollbars */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-color);
+  box-shadow: var(--inset-shadow);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--text-secondary);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-color);
+}
+
+/* Custom range page styles */
+.neo-range-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(40px, 1fr));
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.neo-range-item {
+  height: 40px;
+  border-radius: 8px;
+  background: var(--bg-color);
+  box-shadow: var(--shadow-light), var(--shadow-dark);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.neo-range-item.active {
+  box-shadow: var(--inset-shadow);
+  color: var(--accent-color);
+}
+
+/* ==========================================================================
+   Header Contact Elements (Instagram Glimmer & Phone Call Buttons)
+   ========================================================================== */
+
+/* Instagram Glimmer Button & Icon Effect */
+.instagram-glimmer-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 16px;
+  border-radius: 14px;
+  background: var(--bg-color);
+  box-shadow: var(--shadow-light), var(--shadow-dark);
+  border: 1px solid var(--border-color);
+  color: var(--text-color);
+  text-decoration: none;
+  font-weight: 700;
+  font-size: 0.9rem;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.instagram-glimmer-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-light), var(--shadow-dark), 0 0 14px rgba(220, 39, 67, 0.4);
+  color: #dc2743;
+}
+
+.instagram-glimmer-btn:active {
+  box-shadow: var(--inset-shadow);
+  transform: translateY(0);
+}
+
+/* Styled Instagram Logo Badge with Shimmer Overlay */
+.instagram-icon-badge {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 9px;
+  background: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%);
+  color: #ffffff;
+  overflow: hidden;
+  box-shadow: 0 4px 10px rgba(220, 39, 67, 0.35);
+  flex-shrink: 0;
+}
+
+/* Continuous Glimmer / Shining Ray Animation */
+.instagram-icon-badge::after {
+  content: '';
+  position: absolute;
+  top: -100%;
+  left: -100%;
+  width: 300%;
+  height: 300%;
+  background: linear-gradient(
+    115deg,
+    transparent 0%,
+    transparent 40%,
+    rgba(255, 255, 255, 0.8) 50%,
+    transparent 60%,
+    transparent 100%
+  );
+  animation: instagramGlimmerRay 3s infinite cubic-bezier(0.4, 0, 0.2, 1);
+  pointer-events: none;
+}
+
+@keyframes instagramGlimmerRay {
+  0% {
+    transform: translate(-100%, -100%);
+  }
+  30%, 100% {
+    transform: translate(100%, 100%);
+  }
+}
+
+/* Header Contact Call Button */
+.contact-call-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 16px;
+  border-radius: 14px;
+  background: var(--bg-color);
+  box-shadow: var(--shadow-light), var(--shadow-dark);
+  border: 1px solid var(--border-color);
+  color: var(--text-color);
+  text-decoration: none;
+  font-weight: 700;
+  font-size: 0.9rem;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.contact-call-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-light), var(--shadow-dark), 0 0 14px rgba(0, 135, 30, 0.3);
+  color: var(--accent-color);
+}
+
+.contact-call-btn:active {
+  box-shadow: var(--inset-shadow);
+  transform: translateY(0);
+}
+
+.phone-icon-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 9px;
+  background: var(--accent-gradient);
+  color: #ffffff;
+  box-shadow: 0 4px 10px rgba(0, 135, 30, 0.3);
+  flex-shrink: 0;
+}
+
+/* Modern Showcase Animations */
+@keyframes floatSlow {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+@keyframes laserScan {
+  0% {
+    top: 0%;
+    opacity: 0.8;
+  }
+  50% {
+    top: 90%;
+    opacity: 1;
+  }
+  100% {
+    top: 0%;
+    opacity: 0.8;
+  }
+}
+
+@keyframes pulseGlow {
+  0%, 100% {
+    box-shadow: 0 0 15px rgba(0, 135, 30, 0.2);
+  }
+  50% {
+    box-shadow: 0 0 30px rgba(0, 135, 30, 0.5);
+  }
+}
+
+.showcase-float-badge {
+  animation: floatSlow 4s ease-in-out infinite;
+}
+
+.showcase-laser-line {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, transparent 0%, var(--accent-color) 50%, transparent 100%);
+  box-shadow: 0 0 12px var(--accent-color);
+  animation: laserScan 2.5s ease-in-out infinite;
+  pointer-events: none;
+}
+
+/* Dashboard Responsive Layout Utilities */
+.dashboard-layout-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(40px, 1fr));
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.neo-range-item {
+  height: 40px;
+  border-radius: 8px;
+  background: var(--bg-color);
+  box-shadow: var(--shadow-light), var(--shadow-dark);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.neo-range-item.active {
+  box-shadow: var(--inset-shadow);
+  color: var(--accent-color);
+}
+
+/* ==========================================================================
+   Header Contact Elements (Instagram Glimmer & Phone Call Buttons)
+   ========================================================================== */
+
+/* Instagram Glimmer Button & Icon Effect */
+.instagram-glimmer-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 16px;
+  border-radius: 14px;
+  background: var(--bg-color);
+  box-shadow: var(--shadow-light), var(--shadow-dark);
+  border: 1px solid var(--border-color);
+  color: var(--text-color);
+  text-decoration: none;
+  font-weight: 700;
+  font-size: 0.9rem;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.instagram-glimmer-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-light), var(--shadow-dark), 0 0 14px rgba(220, 39, 67, 0.4);
+  color: #dc2743;
+}
+
+.instagram-glimmer-btn:active {
+  box-shadow: var(--inset-shadow);
+  transform: translateY(0);
+}
+
+/* Styled Instagram Logo Badge with Shimmer Overlay */
+.instagram-icon-badge {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 9px;
+  background: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%);
+  color: #ffffff;
+  overflow: hidden;
+  box-shadow: 0 4px 10px rgba(220, 39, 67, 0.35);
+  flex-shrink: 0;
+}
+
+/* Continuous Glimmer / Shining Ray Animation */
+.instagram-icon-badge::after {
+  content: '';
+  position: absolute;
+  top: -100%;
+  left: -100%;
+  width: 300%;
+  height: 300%;
+  background: linear-gradient(
+    115deg,
+    transparent 0%,
+    transparent 40%,
+    rgba(255, 255, 255, 0.8) 50%,
+    transparent 60%,
+    transparent 100%
+  );
+  animation: instagramGlimmerRay 3s infinite cubic-bezier(0.4, 0, 0.2, 1);
+  pointer-events: none;
+}
+
+@keyframes instagramGlimmerRay {
+  0% {
+    transform: translate(-100%, -100%);
+  }
+  30%, 100% {
+    transform: translate(100%, 100%);
+  }
+}
+
+/* Header Contact Call Button */
+.contact-call-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 16px;
+  border-radius: 14px;
+  background: var(--bg-color);
+  box-shadow: var(--shadow-light), var(--shadow-dark);
+  border: 1px solid var(--border-color);
+  color: var(--text-color);
+  text-decoration: none;
+  font-weight: 700;
+  font-size: 0.9rem;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.contact-call-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-light), var(--shadow-dark), 0 0 14px rgba(0, 135, 30, 0.3);
+  color: var(--accent-color);
+}
+
+.contact-call-btn:active {
+  box-shadow: var(--inset-shadow);
+  transform: translateY(0);
+}
+
+.phone-icon-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 9px;
+  background: var(--accent-gradient);
+  color: #ffffff;
+  box-shadow: 0 4px 10px rgba(0, 135, 30, 0.3);
+  flex-shrink: 0;
+}
+
+/* Modern Showcase Animations */
+@keyframes floatSlow {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+@keyframes laserScan {
+  0% {
+    top: 0%;
+    opacity: 0.8;
+  }
+  50% {
+    top: 90%;
+    opacity: 1;
+  }
+  100% {
+    top: 0%;
+    opacity: 0.8;
+  }
+}
+
+@keyframes pulseGlow {
+  0%, 100% {
+    box-shadow: 0 0 15px rgba(0, 135, 30, 0.2);
+  }
+  50% {
+    box-shadow: 0 0 30px rgba(0, 135, 30, 0.5);
+  }
+}
+
+.showcase-float-badge {
+  animation: floatSlow 4s ease-in-out infinite;
+}
+
+.showcase-laser-line {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, transparent 0%, var(--accent-color) 50%, transparent 100%);
+  box-shadow: 0 0 12px var(--accent-color);
+  animation: laserScan 2.5s ease-in-out infinite;
+  pointer-events: none;
+}
+
+/* Dashboard Responsive Layout Utilities */
+.dashboard-layout-row {
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+}
+
+@media (min-width: 900px) {
+  .dashboard-layout-row {
+    flex-direction: row;
+    flex-wrap: nowrap;
+    align-items: flex-start;
+  }
+}
+
+/* Pulsating Action Buttons */
+.pulse-action-btn {
+  position: relative;
+  overflow: hidden;
+  animation: pulse-glow 2s infinite;
+  transition: all 0.2s ease-in-out;
+}
+
+.pulse-action-btn:hover {
+  transform: translateY(-2px);
+  animation: none;
+  box-shadow: 0 8px 16px rgba(0, 200, 83, 0.4), 0 0 20px rgba(0, 200, 83, 0.2);
+}
+
+.pulse-action-btn:active {
+  transform: translateY(1px);
+  box-shadow: 0 2px 4px rgba(0, 200, 83, 0.4);
+}
+
+@keyframes pulse-glow {
+  0% {
+    box-shadow: 0 0 0 0 rgba(0, 200, 83, 0.4);
+  }
+  70% {
+    box-shadow: 0 0 0 10px rgba(0, 200, 83, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(0, 200, 83, 0);
+  }
+}
