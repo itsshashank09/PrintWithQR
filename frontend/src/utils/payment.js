@@ -1,4 +1,4 @@
-import { API_URL } from '../config';
+
 import { supabase } from '../supabaseClient';
 
 export const loadRazorpayScript = () => {
@@ -36,7 +36,7 @@ export const processSubscriptionPayment = async ({
     }
 
     // 1. Create order on server backend
-    const res = await fetch(`${API_URL}/create-order`, {
+    const res = await fetch(`${import.meta.env.VITE_API_URL || '/api'}/create-subscription-order`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ plan })
@@ -67,7 +67,7 @@ export const processSubscriptionPayment = async ({
           if (setLoading) setLoading(true);
 
           // Verify signature and update backend
-          const verifyRes = await fetch(`${API_URL}/verify-payment`, {
+          const verifyRes = await fetch(`${import.meta.env.VITE_API_URL || '/api'}/verify-subscription-payment`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({

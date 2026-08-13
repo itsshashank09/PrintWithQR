@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { CheckCircle, QrCode, HardDrive, Terminal, AlertCircle, CreditCard, ShieldCheck, Zap, ArrowRight, X } from 'lucide-react';
-import { API_URL } from '../config';
 import { supabase } from '../supabaseClient';
 
 // Dynamic script loader helper for checkout.js
@@ -48,7 +47,7 @@ const Payment = () => {
         throw new Error('Shop ID is missing. Please sign in again or contact support.');
       }
 
-      const verifyRes = await fetch(`${API_URL}/verify-payment`, {
+      const verifyRes = await fetch(`${import.meta.env.VITE_API_URL || '/api'}/verify-payment`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -83,7 +82,7 @@ const Payment = () => {
 
     try {
       // 1. Try launching Razorpay standard checkout
-      const response = await fetch(`${API_URL}/create-order`, {
+      const response = await fetch(`${import.meta.env.VITE_API_URL || '/api'}/create-order`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'

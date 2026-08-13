@@ -1,7 +1,6 @@
-import React, { useContext } from 'react';
+import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { Sun, Moon } from 'lucide-react';
-import { ThemeProvider, ThemeContext } from './context/ThemeContext';
 import Landing from './pages/Landing';
 import Login from './pages/Login';
 import Register from './pages/Register';
@@ -14,11 +13,22 @@ import Admin from './pages/Admin';
 
 // Global FAB theme toggler component
 const ThemeToggleButton = () => {
-  const { isDarkMode, toggleTheme } = useContext(ThemeContext);
+  const [isDarkMode, setIsDarkMode] = useState(() => localStorage.getItem('theme') === 'dark');
+
+  useEffect(() => {
+    if (isDarkMode) {
+      document.body.classList.add('dark-theme');
+      localStorage.setItem('theme', 'dark');
+    } else {
+      document.body.classList.remove('dark-theme');
+      localStorage.setItem('theme', 'light');
+    }
+  }, [isDarkMode]);
+
   return (
     <button 
       className="theme-toggle-fab" 
-      onClick={toggleTheme}
+      onClick={() => setIsDarkMode(!isDarkMode)}
       title={isDarkMode ? "Switch to Light Mode" : "Switch to Dark Mode"}
       aria-label="Toggle Theme"
     >
@@ -100,9 +110,7 @@ const AppContent = () => {
 
 function App() {
   return (
-    <ThemeProvider>
-      <AppContent />
-    </ThemeProvider>
+    <AppContent />
   );
 }
 
