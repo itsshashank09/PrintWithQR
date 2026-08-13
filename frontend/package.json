@@ -10,17 +10,13 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@fingerprintjs/botd": "^2.0.0",
-    "@fingerprintjs/fingerprintjs": "^5.2.0",
     "@supabase/supabase-js": "^2.43.0",
-    "dotenv": "^17.4.2",
     "lucide-react": "^0.363.0",
     "qrcode": "^1.5.3",
     "razorpay": "^2.9.2",
     "react": "^19.2.7",
     "react-dom": "^19.2.7",
-    "react-router-dom": "^6.22.3",
-    "socket.io-client": "^4.7.5"
+    "react-router-dom": "^6.22.3"
   },
   "devDependencies": {
     "@types/react": "^19.2.17",

@@ -34,7 +34,6 @@ const Dashboard = () => {
   const [isFreePlan, setIsFreePlan] = useState(true);
   const [upgradingInDashboard, setUpgradingInDashboard] = useState(false);
   const [timeTick, setTimeTick] = useState(Date.now());
-  const socketRef = useRef(null);
 
   const shopId = localStorage.getItem('shopId');
   const shopName = localStorage.getItem('shopName');

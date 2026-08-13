@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { User, Phone, MapPin, Printer, Lock, Landmark, AlertCircle, ArrowRight, ArrowLeft, Eye, EyeOff, CheckCircle } from 'lucide-react';
-import { API_URL } from '../config';
 import { supabase } from '../supabaseClient';
 import { getDeviceFingerprint } from '../utils/deviceFingerprint';
 
@@ -88,7 +87,7 @@ const Register = () => {
         botFlags: deviceInfo.botFlags
       };
 
-      const response = await fetch(`${API_URL}/register-shop`, {
+      const response = await fetch(`${import.meta.env.VITE_API_URL || '/api'}/register-shop`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
