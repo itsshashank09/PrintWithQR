@@ -165,7 +165,7 @@ const Payment = () => {
               padding: '20px', 
               cursor: 'pointer', 
               textAlign: 'center', 
-              transition: 'all 0.3s', 
+              transition: 'transform 150ms var(--ease-out), box-shadow 150ms var(--ease-out)', 
               border: selectedPlan === 'monthly' ? '2px solid var(--accent-color)' : '1px solid var(--border-color)',
               marginBottom: 0
             }}
@@ -183,7 +183,7 @@ const Payment = () => {
               padding: '20px', 
               cursor: 'pointer', 
               textAlign: 'center', 
-              transition: 'all 0.3s', 
+              transition: 'transform 150ms var(--ease-out), box-shadow 150ms var(--ease-out)', 
               border: selectedPlan === 'yearly' ? '2px solid var(--accent-color)' : '1px solid var(--border-color)',
               position: 'relative',
               marginBottom: 0

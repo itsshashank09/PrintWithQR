@@ -35,7 +35,7 @@ const Register = () => {
     alignItems: 'center',
     padding: '4px',
     borderRadius: '6px',
-    transition: 'color 0.2s'
+    transition: 'color 150ms var(--ease-out)'
   };
 
   const handleNextStep = (e) => {

@@ -27,8 +27,9 @@
   --border-radius: 24px;
   --font-family: 'Outfit', sans-serif;
   
-  /* Transition speed */
-  --transition-speed: 0.3s;
+  /* Transition speed and easing */
+  --transition-speed: 150ms;
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
 }
 
 .dark-theme {
@@ -69,7 +70,7 @@ body {
   background-attachment: fixed;
   color: var(--text-color);
   min-height: 100vh;
-  transition: background var(--transition-speed), color var(--transition-speed);
+  transition: background var(--transition-speed) var(--ease-out), color var(--transition-speed) var(--ease-out);
 }
 
 /* Neomorphic Containers */
@@ -86,7 +87,7 @@ body {
   border: 1px solid var(--border-color);
   padding: 25px;
   margin-bottom: 25px;
-  transition: all var(--transition-speed);
+  transition: transform var(--transition-speed) var(--ease-out), box-shadow var(--transition-speed) var(--ease-out), background var(--transition-speed) var(--ease-out), color var(--transition-speed) var(--ease-out);
 }
 
 .neo-card-inset {
@@ -128,7 +129,7 @@ body {
   outline: none;
   font-family: var(--font-family);
   font-size: 1rem;
-  transition: box-shadow var(--transition-speed);
+  transition: box-shadow var(--transition-speed) var(--ease-out);
 }
 
 .neo-input:focus {
@@ -180,7 +181,7 @@ body {
   font-size: 0.95rem;
   cursor: pointer;
   outline: none;
-  transition: all var(--transition-speed);
+  transition: transform var(--transition-speed) var(--ease-out), box-shadow var(--transition-speed) var(--ease-out), background var(--transition-speed) var(--ease-out), color var(--transition-speed) var(--ease-out);
 }
 
 .neo-btn:hover {
@@ -189,7 +190,7 @@ body {
 
 .neo-btn:active, .neo-btn.active {
   box-shadow: var(--inset-shadow);
-  transform: translateY(1px);
+  transform: translateY(1px) scale(0.97);
 }
 
 .neo-btn-primary {
@@ -312,7 +313,7 @@ input:checked + .neo-slider:before {
   color: var(--text-secondary);
   border-radius: 12px;
   cursor: pointer;
-  transition: all var(--transition-speed);
+  transition: transform var(--transition-speed) var(--ease-out), box-shadow var(--transition-speed) var(--ease-out), background var(--transition-speed) var(--ease-out), color var(--transition-speed) var(--ease-out);
 }
 
 .neo-tab.active {
@@ -415,7 +416,7 @@ input:checked + .neo-slider:before {
   box-shadow: var(--shadow-light), var(--shadow-dark);
   border: 1px solid var(--border-color);
   color: var(--text-color);
-  transition: all var(--transition-speed);
+  transition: transform var(--transition-speed) var(--ease-out), box-shadow var(--transition-speed) var(--ease-out), background var(--transition-speed) var(--ease-out), color var(--transition-speed) var(--ease-out);
 }
 
 .theme-toggle-fab:active {
@@ -555,7 +556,7 @@ p { color: var(--text-secondary); line-height: 1.6; margin-bottom: 15px; }
   justify-content: center;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: transform 150ms var(--ease-out), box-shadow 150ms var(--ease-out), background-color 150ms var(--ease-out);
 }
 
 .neo-range-item.active {
@@ -581,7 +582,7 @@ p { color: var(--text-secondary); line-height: 1.6; margin-bottom: 15px; }
   text-decoration: none;
   font-weight: 700;
   font-size: 0.9rem;
-  transition: all 0.3s ease;
+  transition: transform 150ms var(--ease-out), box-shadow 150ms var(--ease-out), background-color 150ms var(--ease-out);
   cursor: pointer;
 }
 
@@ -655,7 +656,7 @@ p { color: var(--text-secondary); line-height: 1.6; margin-bottom: 15px; }
   text-decoration: none;
   font-weight: 700;
   font-size: 0.9rem;
-  transition: all 0.3s ease;
+  transition: transform 150ms var(--ease-out), box-shadow 150ms var(--ease-out), background-color 150ms var(--ease-out);
   cursor: pointer;
 }
 
@@ -750,7 +751,7 @@ p { color: var(--text-secondary); line-height: 1.6; margin-bottom: 15px; }
   justify-content: center;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: transform 150ms var(--ease-out), box-shadow 150ms var(--ease-out), background-color 150ms var(--ease-out);
 }
 
 .neo-range-item.active {
@@ -776,7 +777,7 @@ p { color: var(--text-secondary); line-height: 1.6; margin-bottom: 15px; }
   text-decoration: none;
   font-weight: 700;
   font-size: 0.9rem;
-  transition: all 0.3s ease;
+  transition: transform 150ms var(--ease-out), box-shadow 150ms var(--ease-out), background-color 150ms var(--ease-out);
   cursor: pointer;
 }
 
@@ -850,7 +851,7 @@ p { color: var(--text-secondary); line-height: 1.6; margin-bottom: 15px; }
   text-decoration: none;
   font-weight: 700;
   font-size: 0.9rem;
-  transition: all 0.3s ease;
+  transition: transform 150ms var(--ease-out), box-shadow 150ms var(--ease-out), background-color 150ms var(--ease-out);
   cursor: pointer;
 }
 
@@ -947,7 +948,7 @@ p { color: var(--text-secondary); line-height: 1.6; margin-bottom: 15px; }
   position: relative;
   overflow: hidden;
   animation: pulse-glow 2s infinite;
-  transition: all 0.2s ease-in-out;
+  transition: transform 150ms var(--ease-out), box-shadow 150ms var(--ease-out), background-color 150ms var(--ease-out);
 }
 
 .pulse-action-btn:hover {
