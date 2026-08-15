@@ -534,7 +534,7 @@ const UploadPage = () => {
           
           {/* STEP 1: FILE UPLOAD */}
           {step === 1 && (
-            <div>
+            <div className="step-enter">
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '5px' }}>
                 <h3 style={{ margin: 0 }}>File Upload</h3>
                 <button 
@@ -611,7 +611,7 @@ const UploadPage = () => {
 
           {/* STEP 2: PRINT PREVIEW */}
           {step === 2 && (
-            <div>
+            <div className="step-enter">
               {/* File tabs for multi-file preview */}
               {files.length > 1 && (
                 <div style={{ display: 'flex', gap: '6px', overflowX: 'auto', marginBottom: '12px', paddingBottom: '4px' }}>
@@ -689,7 +689,7 @@ const UploadPage = () => {
 
           {/* STEP 3: PRINT OPTIONS & ORDER */}
           {step === 3 && (
-            <div>
+            <div className="step-enter">
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '5px', flexWrap: 'wrap', gap: '10px' }}>
                 <h3 style={{ margin: 0 }}>Print Configuration</h3>
                 <div style={{ display: 'flex', gap: '10px' }}>

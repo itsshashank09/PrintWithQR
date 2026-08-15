@@ -10,7 +10,7 @@
   --inset-shadow-active: inset 3px 3px 6px #a3a3a3, inset -3px -3px 6px #ffffff;
   
   --text-color: #1a1a1a;
-  --text-secondary: #555555;
+  --text-secondary: #4a5568;
   --border-color: rgba(255, 255, 255, 0.5);
   
   /* Accents - Vibrant Grass Green (matching battery/progress indicator) */
@@ -191,6 +191,19 @@ body {
 .neo-btn:active, .neo-btn.active {
   box-shadow: var(--inset-shadow);
   transform: translateY(1px) scale(0.97);
+}
+
+.neo-btn:focus-visible, .neo-input:focus-visible, .neo-select:focus-visible, a:focus-visible {
+  outline: 2px solid var(--accent-color);
+  outline-offset: 2px;
+}
+
+.neo-btn:disabled, .neo-btn[disabled] {
+  opacity: 0.45;
+  cursor: not-allowed !important;
+  pointer-events: none !important;
+  box-shadow: none !important;
+  transform: none !important;
 }
 
 .neo-btn-primary {
@@ -735,201 +748,6 @@ p { color: var(--text-secondary); line-height: 1.6; margin-bottom: 15px; }
 
 /* Dashboard Responsive Layout Utilities */
 .dashboard-layout-row {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(40px, 1fr));
-  gap: 8px;
-  margin-top: 10px;
-}
-
-.neo-range-item {
-  height: 40px;
-  border-radius: 8px;
-  background: var(--bg-color);
-  box-shadow: var(--shadow-light), var(--shadow-dark);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 600;
-  cursor: pointer;
-  transition: transform 150ms var(--ease-out), box-shadow 150ms var(--ease-out), background-color 150ms var(--ease-out);
-}
-
-.neo-range-item.active {
-  box-shadow: var(--inset-shadow);
-  color: var(--accent-color);
-}
-
-/* ==========================================================================
-   Header Contact Elements (Instagram Glimmer & Phone Call Buttons)
-   ========================================================================== */
-
-/* Instagram Glimmer Button & Icon Effect */
-.instagram-glimmer-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-  padding: 8px 16px;
-  border-radius: 14px;
-  background: var(--bg-color);
-  box-shadow: var(--shadow-light), var(--shadow-dark);
-  border: 1px solid var(--border-color);
-  color: var(--text-color);
-  text-decoration: none;
-  font-weight: 700;
-  font-size: 0.9rem;
-  transition: transform 150ms var(--ease-out), box-shadow 150ms var(--ease-out), background-color 150ms var(--ease-out);
-  cursor: pointer;
-}
-
-.instagram-glimmer-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-light), var(--shadow-dark), 0 0 14px rgba(220, 39, 67, 0.4);
-  color: #dc2743;
-}
-
-.instagram-glimmer-btn:active {
-  box-shadow: var(--inset-shadow);
-  transform: translateY(0);
-}
-
-/* Styled Instagram Logo Badge with Shimmer Overlay */
-.instagram-icon-badge {
-  position: relative;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 32px;
-  height: 32px;
-  border-radius: 9px;
-  background: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%);
-  color: #ffffff;
-  overflow: hidden;
-  box-shadow: 0 4px 10px rgba(220, 39, 67, 0.35);
-  flex-shrink: 0;
-}
-
-/* Continuous Glimmer / Shining Ray Animation */
-.instagram-icon-badge::after {
-  content: '';
-  position: absolute;
-  top: -100%;
-  left: -100%;
-  width: 300%;
-  height: 300%;
-  background: linear-gradient(
-    115deg,
-    transparent 0%,
-    transparent 40%,
-    rgba(255, 255, 255, 0.8) 50%,
-    transparent 60%,
-    transparent 100%
-  );
-  animation: instagramGlimmerRay 3s infinite cubic-bezier(0.4, 0, 0.2, 1);
-  pointer-events: none;
-}
-
-@keyframes instagramGlimmerRay {
-  0% {
-    transform: translate(-100%, -100%);
-  }
-  30%, 100% {
-    transform: translate(100%, 100%);
-  }
-}
-
-/* Header Contact Call Button */
-.contact-call-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-  padding: 8px 16px;
-  border-radius: 14px;
-  background: var(--bg-color);
-  box-shadow: var(--shadow-light), var(--shadow-dark);
-  border: 1px solid var(--border-color);
-  color: var(--text-color);
-  text-decoration: none;
-  font-weight: 700;
-  font-size: 0.9rem;
-  transition: transform 150ms var(--ease-out), box-shadow 150ms var(--ease-out), background-color 150ms var(--ease-out);
-  cursor: pointer;
-}
-
-.contact-call-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-light), var(--shadow-dark), 0 0 14px rgba(0, 135, 30, 0.3);
-  color: var(--accent-color);
-}
-
-.contact-call-btn:active {
-  box-shadow: var(--inset-shadow);
-  transform: translateY(0);
-}
-
-.phone-icon-badge {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 32px;
-  height: 32px;
-  border-radius: 9px;
-  background: var(--accent-gradient);
-  color: #ffffff;
-  box-shadow: 0 4px 10px rgba(0, 135, 30, 0.3);
-  flex-shrink: 0;
-}
-
-/* Modern Showcase Animations */
-@keyframes floatSlow {
-  0%, 100% {
-    transform: translateY(0px);
-  }
-  50% {
-    transform: translateY(-8px);
-  }
-}
-
-@keyframes laserScan {
-  0% {
-    top: 0%;
-    opacity: 0.8;
-  }
-  50% {
-    top: 90%;
-    opacity: 1;
-  }
-  100% {
-    top: 0%;
-    opacity: 0.8;
-  }
-}
-
-@keyframes pulseGlow {
-  0%, 100% {
-    box-shadow: 0 0 15px rgba(0, 135, 30, 0.2);
-  }
-  50% {
-    box-shadow: 0 0 30px rgba(0, 135, 30, 0.5);
-  }
-}
-
-.showcase-float-badge {
-  animation: floatSlow 4s ease-in-out infinite;
-}
-
-.showcase-laser-line {
-  position: absolute;
-  left: 0;
-  right: 0;
-  height: 3px;
-  background: linear-gradient(90deg, transparent 0%, var(--accent-color) 50%, transparent 100%);
-  box-shadow: 0 0 12px var(--accent-color);
-  animation: laserScan 2.5s ease-in-out infinite;
-  pointer-events: none;
-}
-
-/* Dashboard Responsive Layout Utilities */
-.dashboard-layout-row {
   display: flex;
   flex-direction: column;
   gap: 30px;
@@ -958,7 +776,7 @@ p { color: var(--text-secondary); line-height: 1.6; margin-bottom: 15px; }
 }
 
 .pulse-action-btn:active {
-  transform: translateY(1px);
+  transform: scale(0.97);
   box-shadow: 0 2px 4px rgba(0, 200, 83, 0.4);
 }
 
@@ -973,3 +791,34 @@ p { color: var(--text-secondary); line-height: 1.6; margin-bottom: 15px; }
     box-shadow: 0 0 0 0 rgba(0, 200, 83, 0);
   }
 }
+
+/* Step Wizard Smooth Entrance Animation */
+@keyframes fadeInStep {
+  from {
+    opacity: 0;
+    transform: scale(0.98) translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.step-enter {
+  animation: fadeInStep 180ms cubic-bezier(0.23, 1, 0.32, 1) forwards;
+}
+
+@media (max-width: 480px) {
+  .neo-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+  .neo-header .logo-container {
+    justify-content: center;
+  }
+  .neo-header > div, .neo-header > a {
+    justify-content: center;
+  }
+}
+

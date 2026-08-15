@@ -41,7 +41,7 @@ const Landing = () => {
         </div>
 
         {/* Top Right Corner: Clickable Phone Call Button & Auth Nav */}
-        <div style={{ display: 'flex', gap: '12px', alignItems: 'center', flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', gap: '12px', alignItems: 'center', flexWrap: 'wrap', justifyContent: 'center' }}>
           <a 
             href="tel:+919483030043" 
             className="contact-call-btn"
