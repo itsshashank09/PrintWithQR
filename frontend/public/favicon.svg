@@ -1,5 +1,21 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#00871e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-  <path d="M6 9V2h12v7" />
-  <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2" />
-  <rect x="6" y="14" width="12" height="8" rx="1" fill="#ffffff" />
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!-- Green Circle Background -->
+  <circle cx="256" cy="256" r="256" fill="#1b692a" />
+  
+  <!-- Printer Top Paper Tray -->
+  <polygon points="160,175 352,175 372,215 140,215" fill="#ffffff" />
+  
+  <!-- Printer Main Body -->
+  <rect x="135" y="230" width="242" height="100" rx="16" fill="#ffffff" />
+  
+  <!-- Control Panel Grid on Right (4 Dots) -->
+  <rect x="320" y="246" width="38" height="38" rx="8" fill="#1b692a" />
+  <circle cx="331" cy="257" r="3.5" fill="#ffffff" />
+  <circle cx="347" cy="257" r="3.5" fill="#ffffff" />
+  <circle cx="331" cy="273" r="3.5" fill="#ffffff" />
+  <circle cx="347" cy="273" r="3.5" fill="#ffffff" />
+  
+  <!-- Bottom Output Paper Sheet -->
+  <polygon points="190,300 322,300 340,380 172,380" fill="#ffffff" />
+  <polygon points="196,306 316,306 332,374 180,374" fill="#1b692a" />
 </svg>
