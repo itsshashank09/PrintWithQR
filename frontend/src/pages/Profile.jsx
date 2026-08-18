@@ -289,20 +289,22 @@ const Profile = () => {
 
               <div style={{ display: 'flex', gap: '15px' }}>
                 <button 
+                  type="button"
                   className="neo-btn"
                   onClick={() => handleUpgradePlan('monthly')}
                   disabled={upgradingPlan}
                   style={{ padding: '12px 20px', borderRadius: '12px', fontSize: '0.92rem', display: 'inline-flex', alignItems: 'center', gap: '8px', flex: 1, justifyContent: 'center' }}
                 >
-                  <Zap size={18} /> {upgradingPlan ? 'Wait...' : 'Upgrade ₹99/mo'}
+                  <Zap size={18} /> {upgradingPlan ? 'Connecting...' : 'Upgrade ₹99/mo'}
                 </button>
                 <button 
+                  type="button"
                   className="neo-btn neo-btn-primary"
                   onClick={() => handleUpgradePlan('yearly')}
                   disabled={upgradingPlan}
                   style={{ padding: '12px 20px', borderRadius: '12px', fontSize: '0.92rem', display: 'inline-flex', alignItems: 'center', gap: '8px', flex: 1, justifyContent: 'center' }}
                 >
-                  <Zap size={18} /> {upgradingPlan ? 'Launching...' : 'Upgrade ₹599/yr'}
+                  <Zap size={18} /> {upgradingPlan ? 'Connecting...' : 'Upgrade ₹599/yr'}
                 </button>
               </div>
               <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', textAlign: 'center', marginTop: '15px' }}>
