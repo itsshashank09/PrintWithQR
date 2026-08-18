@@ -240,44 +240,124 @@ a {
   color: #FFFFFF;
 }
 
-/* Vibrant Primary Call-To-Action (Unmissable next-step button) */
+/* Vibrant Primary Call-To-Action (Unmissable next-step button with light shimmer & glow) */
 .neo-btn-cta {
-  background: var(--accent) !important;
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(135deg, #5B7CFA 0%, #4364EE 100%) !important;
   color: #FFFFFF !important;
   font-weight: 700 !important;
-  border: 1px solid rgba(255, 255, 255, 0.25) !important;
-  box-shadow: 0 4px 14px rgba(91, 124, 250, 0.45), var(--shadow-extrude-sm) !important;
+  border: 1px solid rgba(255, 255, 255, 0.3) !important;
+  box-shadow: 0 0 12px rgba(91, 124, 250, 0.5), 0 4px 16px rgba(91, 124, 250, 0.4), var(--shadow-extrude-sm) !important;
   letter-spacing: 0.02em;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Light sweep shimmer effect moving across the button */
+.neo-btn-cta::after {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -70%;
+  width: 45%;
+  height: 200%;
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.45) 50%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  transform: rotate(25deg);
+  animation: lightSweep 2.8s infinite ease-in-out;
+  pointer-events: none;
+}
+
+@keyframes lightSweep {
+  0% {
+    left: -70%;
+  }
+  35%, 100% {
+    left: 140%;
+  }
 }
 
 .neo-btn-cta:hover {
-  background: var(--accent-hover) !important;
+  background: linear-gradient(135deg, #6B8AFF 0%, #4D6DF5 100%) !important;
   color: #FFFFFF !important;
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(91, 124, 250, 0.6), var(--shadow-extrude) !important;
+  transform: translateY(-3px) scale(1.02);
+  box-shadow: 0 0 24px rgba(91, 124, 250, 0.8), 0 8px 24px rgba(91, 124, 250, 0.65), var(--shadow-extrude) !important;
 }
 
 .neo-btn-cta:active {
-  transform: scale(0.97) !important;
-  box-shadow: inset 3px 3px 6px rgba(0, 0, 0, 0.35) !important;
+  transform: scale(0.96) !important;
+  box-shadow: inset 3px 3px 6px rgba(0, 0, 0, 0.4) !important;
 }
 
-/* Subtle attention-grabbing pulse effect */
-@keyframes ctaGlowPulse {
+/* Floating & Radiant Multi-Layer Glowing Animation */
+@keyframes ctaGlowMotion {
   0% {
-    box-shadow: 0 0 0 0 rgba(91, 124, 250, 0.55), 0 4px 14px rgba(91, 124, 250, 0.4);
+    transform: translateY(0) scale(1);
+    box-shadow: 0 0 12px rgba(91, 124, 250, 0.5), 0 4px 14px rgba(91, 124, 250, 0.4), 0 0 0 0 rgba(91, 124, 250, 0.6);
   }
-  70% {
-    box-shadow: 0 0 0 10px rgba(91, 124, 250, 0), 0 4px 18px rgba(91, 124, 250, 0.45);
+  50% {
+    transform: translateY(-3px) scale(1.025);
+    box-shadow: 0 0 26px rgba(91, 124, 250, 0.85), 0 8px 25px rgba(91, 124, 250, 0.6), 0 0 0 10px rgba(91, 124, 250, 0);
   }
   100% {
-    box-shadow: 0 0 0 0 rgba(91, 124, 250, 0), 0 4px 14px rgba(91, 124, 250, 0.4);
+    transform: translateY(0) scale(1);
+    box-shadow: 0 0 12px rgba(91, 124, 250, 0.5), 0 4px 14px rgba(91, 124, 250, 0.4), 0 0 0 0 rgba(91, 124, 250, 0);
   }
 }
 
 .pulse-cta {
-  animation: ctaGlowPulse 2.2s infinite cubic-bezier(0.4, 0, 0.6, 1);
+  animation: ctaGlowMotion 2.2s infinite ease-in-out;
+}
+
+/* Moving arrow effect inside CTA buttons */
+.btn-arrow-move {
+  display: inline-flex;
+  align-items: center;
+  animation: arrowSlide 1.4s infinite ease-in-out;
+  transition: transform 0.2s ease;
+}
+
+@keyframes arrowSlide {
+  0%, 100% {
+    transform: translateX(0);
+  }
+  50% {
+    transform: translateX(6px);
+  }
+}
+
+.neo-btn-cta:hover .btn-arrow-move {
+  animation: none;
+  transform: translateX(8px);
+}
+
+/* Vibrating Printer Icon for final order step */
+.btn-printer-pulse {
+  display: inline-flex;
+  align-items: center;
+  animation: printerBob 1.8s infinite ease-in-out;
+}
+
+@keyframes printerBob {
+  0%, 100% {
+    transform: scale(1) rotate(0deg);
+  }
+  25% {
+    transform: scale(1.15) rotate(-5deg);
+  }
+  50% {
+    transform: scale(1.18) rotate(0deg);
+  }
+  75% {
+    transform: scale(1.15) rotate(5deg);
+  }
 }
 
 /* Semantic Action Buttons */
