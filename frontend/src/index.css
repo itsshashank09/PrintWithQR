@@ -63,19 +63,28 @@
 }
 
 .dark-theme {
-  /* Dark Mode Palette: Highlight is light gray (NOT white), shade is dark gray (NOT black) */
-  --bg: #2A2D32;
-  --light: #34383E;
-  --dark: #1C1E21;
+  /* Dark Mode Palette: Refined matte background with soft, natural depth (no glowing halo) */
+  --bg: #22252A;
+  --light: rgba(255, 255, 255, 0.04);
+  --dark: rgba(0, 0, 0, 0.5);
+
+  --shadow-extrude: -5px -5px 12px var(--light), 6px 6px 14px var(--dark);
+  --shadow-extrude-sm: -3px -3px 8px var(--light), 4px 4px 10px var(--dark);
+  --shadow-extrude-xs: -2px -2px 4px var(--light), 2px 2px 6px var(--dark);
+  --shadow-inset: inset 4px 4px 8px var(--dark), inset -4px -4px 8px var(--light);
+  --shadow-inset-sm: inset 2px 2px 5px var(--dark), inset -2px -2px 5px var(--light);
+
+  --shadow-light: -5px -5px 12px var(--light);
+  --shadow-dark: 6px 6px 14px var(--dark);
 
   --accent: #5B7CFA;
   --accent-hover: #7592FB;
-  --accent-light: rgba(91, 124, 250, 0.18);
-  --accent-border: rgba(91, 124, 250, 0.45);
+  --accent-light: rgba(91, 124, 250, 0.16);
+  --accent-border: rgba(91, 124, 250, 0.35);
 
-  /* High-Contrast Typography (>= 7:1 contrast floor) */
-  --text-primary: #F0F4F8;   /* Ratio > 11:1 against #2A2D32 */
-  --text-secondary: #94A3B8; /* Ratio > 7:1 against #2A2D32 */
+  /* High-Contrast Typography */
+  --text-primary: #F0F4F8;
+  --text-secondary: #94A3B8;
   --text-muted: #64748B;
   
   --success: #34D399;
@@ -552,6 +561,35 @@ input:checked + .neo-slider:before {
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap: 20px;
   margin-bottom: 24px;
+}
+
+.dashboard-layout-row {
+  display: flex;
+  gap: 24px;
+  align-items: flex-start;
+}
+
+.dashboard-left-col {
+  flex: 0 0 320px;
+  max-width: 320px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.dashboard-right-col {
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+@media (max-width: 960px) {
+  .dashboard-layout-row {
+    flex-direction: column;
+  }
+  .dashboard-left-col {
+    flex: 1 1 100%;
+    max-width: 100%;
+  }
 }
 
 .stat-card {
