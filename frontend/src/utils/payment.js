@@ -36,7 +36,7 @@ export const processSubscriptionPayment = async ({
     }
 
     // 1. Create order on server backend
-    const res = await fetch(`${import.meta.env.VITE_API_URL || '/api'}/create-subscription-order`, {
+    const res = await fetch(`${import.meta.env.VITE_API_URL || '/api'}/create-order`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ plan })
@@ -55,7 +55,7 @@ export const processSubscriptionPayment = async ({
       key: orderData.key,
       amount: orderData.amount,
       currency: orderData.currency || 'INR',
-      name: 'QRPrintPlatform',
+      name: 'PrintWithQR.in',
       description: isYearly ? 'Annual Print Shop Plan (₹599/year)' : 'Monthly Print Shop Plan (₹99/month)',
       order_id: orderData.order_id,
       prefill: {
@@ -67,7 +67,7 @@ export const processSubscriptionPayment = async ({
           if (setLoading) setLoading(true);
 
           // Verify signature and update backend
-          const verifyRes = await fetch(`${import.meta.env.VITE_API_URL || '/api'}/verify-subscription-payment`, {
+          const verifyRes = await fetch(`${import.meta.env.VITE_API_URL || '/api'}/verify-payment`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -108,7 +108,7 @@ export const processSubscriptionPayment = async ({
           if (setLoading) setLoading(false);
         }
       },
-      theme: { color: '#10b981' }
+      theme: { color: '#5B7CFA' }
     };
 
     const rzp = new window.Razorpay(options);
