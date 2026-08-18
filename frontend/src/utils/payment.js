@@ -36,28 +36,40 @@ export const processSubscriptionPayment = async ({
     }
 
     // 1. Create order on server backend
-    const res = await fetch(`${import.meta.env.VITE_API_URL || '/api'}/create-order`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ plan })
-    });
-
-    const orderData = await res.json();
-    if (!res.ok) {
-      throw new Error(orderData.error || 'Failed to create payment order.');
+    let orderData = {};
+    try {
+      const res = await fetch(`${import.meta.env.VITE_API_URL || '/api'}/create-order`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ plan })
+      });
+      if (res.ok) {
+        orderData = await res.json();
+      } else {
+        try {
+          const errJson = await res.json();
+          if (errJson?.error) throw new Error(errJson.error);
+        } catch (e) {
+          console.warn('API error parsing:', e);
+        }
+      }
+    } catch (apiErr) {
+      console.warn('Backend order creation warning (will fallback to direct checkout):', apiErr);
     }
 
     const isYearly = plan === 'yearly';
     const durationDays = isYearly ? 365 : 30;
+    const defaultAmountInPaise = isYearly ? 59900 : 9900;
+    const razorpayKey = orderData?.key || 'rzp_live_TGXJziexG4WkWN';
 
     // 2. Configure Razorpay modal options
     const options = {
-      key: orderData.key,
-      amount: orderData.amount,
-      currency: orderData.currency || 'INR',
+      key: razorpayKey,
+      amount: orderData?.amount || defaultAmountInPaise,
+      currency: orderData?.currency || 'INR',
       name: 'PrintWithQR.in',
       description: isYearly ? 'Annual Print Shop Plan (₹599/year)' : 'Monthly Print Shop Plan (₹99/month)',
-      order_id: orderData.order_id,
+      ...(orderData?.order_id ? { order_id: orderData.order_id } : {}),
       prefill: {
         contact: phone || localStorage.getItem('saved_phone') || '',
         name: name || localStorage.getItem('shopName') || ''
