@@ -2,7 +2,12 @@
   "name": "printwithqr-root",
   "version": "1.0.0",
   "private": true,
+  "type": "module",
   "scripts": {
     "build": "cd frontend && npm install && npm run build"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.43.0",
+    "razorpay": "^2.9.2"
   }
 }
