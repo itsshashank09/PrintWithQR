@@ -240,6 +240,46 @@ a {
   color: #FFFFFF;
 }
 
+/* Vibrant Primary Call-To-Action (Unmissable next-step button) */
+.neo-btn-cta {
+  background: var(--accent) !important;
+  color: #FFFFFF !important;
+  font-weight: 700 !important;
+  border: 1px solid rgba(255, 255, 255, 0.25) !important;
+  box-shadow: 0 4px 14px rgba(91, 124, 250, 0.45), var(--shadow-extrude-sm) !important;
+  letter-spacing: 0.02em;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+.neo-btn-cta:hover {
+  background: var(--accent-hover) !important;
+  color: #FFFFFF !important;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(91, 124, 250, 0.6), var(--shadow-extrude) !important;
+}
+
+.neo-btn-cta:active {
+  transform: scale(0.97) !important;
+  box-shadow: inset 3px 3px 6px rgba(0, 0, 0, 0.35) !important;
+}
+
+/* Subtle attention-grabbing pulse effect */
+@keyframes ctaGlowPulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(91, 124, 250, 0.55), 0 4px 14px rgba(91, 124, 250, 0.4);
+  }
+  70% {
+    box-shadow: 0 0 0 10px rgba(91, 124, 250, 0), 0 4px 18px rgba(91, 124, 250, 0.45);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(91, 124, 250, 0), 0 4px 14px rgba(91, 124, 250, 0.4);
+  }
+}
+
+.pulse-cta {
+  animation: ctaGlowPulse 2.2s infinite cubic-bezier(0.4, 0, 0.6, 1);
+}
+
 /* Semantic Action Buttons */
 .neo-btn-danger {
   border: 1px solid var(--danger);
