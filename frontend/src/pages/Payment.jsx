@@ -166,14 +166,14 @@ const Payment = () => {
               cursor: 'pointer', 
               textAlign: 'center', 
               transition: 'transform 150ms var(--ease-out), box-shadow 150ms var(--ease-out)', 
-              border: selectedPlan === 'monthly' ? '2px solid var(--accent-color)' : '1px solid var(--border-color)',
+              border: selectedPlan === 'monthly' ? '1px solid var(--accent)' : '1px solid transparent',
               marginBottom: 0
             }}
             onClick={() => setSelectedPlan('monthly')}
           >
-            <span style={{ display: 'block', fontWeight: 700, fontSize: '1rem', color: selectedPlan === 'monthly' ? 'var(--accent-color)' : 'var(--text-color)' }}>Monthly Plan</span>
-            <span style={{ display: 'block', fontSize: '1.8rem', fontWeight: 800, color: 'var(--text-color)', margin: '8px 0' }}>₹99</span>
-            <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>Billed Monthly</span>
+            <span style={{ display: 'block', fontWeight: 700, fontSize: '1rem', color: selectedPlan === 'monthly' ? 'var(--accent)' : 'var(--text-primary)' }}>Monthly Plan</span>
+            <span style={{ display: 'block', fontSize: '1.8rem', fontWeight: 800, color: 'var(--text-primary)', margin: '8px 0' }}>₹99</span>
+            <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Billed Monthly</span>
           </div>
 
           <div 
@@ -184,18 +184,18 @@ const Payment = () => {
               cursor: 'pointer', 
               textAlign: 'center', 
               transition: 'transform 150ms var(--ease-out), box-shadow 150ms var(--ease-out)', 
-              border: selectedPlan === 'yearly' ? '2px solid var(--accent-color)' : '1px solid var(--border-color)',
+              border: selectedPlan === 'yearly' ? '1px solid var(--accent)' : '1px solid transparent',
               position: 'relative',
               marginBottom: 0
             }}
             onClick={() => setSelectedPlan('yearly')}
           >
-            <div style={{ position: 'absolute', top: '-12px', right: '15px', background: 'var(--accent-gradient)', color: '#ffffff', fontSize: '0.68rem', padding: '4px 10px', borderRadius: '12px', fontWeight: 800 }}>
-              50% OFF
+            <div style={{ position: 'absolute', top: '-12px', right: '15px', background: 'var(--bg)', border: '1px solid var(--accent)', color: 'var(--accent)', fontSize: '0.7rem', padding: '3px 10px', borderRadius: '12px', fontWeight: 800, boxShadow: 'var(--shadow-extrude-sm)' }}>
+              ★ 50% OFF
             </div>
-            <span style={{ display: 'block', fontWeight: 700, fontSize: '1rem', color: selectedPlan === 'yearly' ? 'var(--accent-color)' : 'var(--text-color)' }}>Annual Plan</span>
-            <span style={{ display: 'block', fontSize: '1.8rem', fontWeight: 800, color: 'var(--text-color)', margin: '8px 0' }}>₹599</span>
-            <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>Billed Yearly</span>
+            <span style={{ display: 'block', fontWeight: 700, fontSize: '1rem', color: selectedPlan === 'yearly' ? 'var(--accent)' : 'var(--text-primary)' }}>Annual Plan</span>
+            <span style={{ display: 'block', fontSize: '1.8rem', fontWeight: 800, color: 'var(--text-primary)', margin: '8px 0' }}>₹599</span>
+            <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Billed Yearly</span>
           </div>
         </div>
 
