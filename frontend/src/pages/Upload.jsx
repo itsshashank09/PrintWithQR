@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { 
   Upload, Printer, FileText, Info, HelpCircle, AlertCircle, 
-  ChevronLeft, ChevronRight, CheckCircle, Landmark, RefreshCw
+  ChevronLeft, ChevronRight, CheckCircle, Landmark, RefreshCw, ArrowRight
 } from 'lucide-react';
 import { supabase } from '../supabaseClient';
 
@@ -516,18 +516,16 @@ const UploadPage = () => {
       <div style={{ maxWidth: '500px', margin: '0 auto' }}>
         
         {/* Progress Bar / Step Indicator */}
-        <div className="neo-card-inset" style={{ padding: '12px 20px', borderRadius: '15px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '25px' }}>
-          <span style={{ fontWeight: 700, fontSize: '0.85rem', color: step === 1 ? 'var(--accent)' : 'var(--text-secondary)' }}>
-            1. Upload
-          </span>
-          <div style={{ width: '30px', height: '2px', background: 'var(--border-color)' }}></div>
-          <span style={{ fontWeight: 700, fontSize: '0.85rem', color: step === 2 ? 'var(--accent)' : 'var(--text-secondary)' }}>
-            2. Preview
-          </span>
-          <div style={{ width: '30px', height: '2px', background: 'var(--border-color)' }}></div>
-          <span style={{ fontWeight: 700, fontSize: '0.85rem', color: step === 3 ? 'var(--accent)' : 'var(--text-secondary)' }}>
-            3. Options & Order
-          </span>
+        <div className="neo-tabs" style={{ marginBottom: '25px', padding: '6px' }}>
+          <div className={`neo-tab ${step === 1 ? 'active' : ''}`} style={{ minHeight: '38px', fontSize: '0.88rem', gap: '6px' }}>
+            <span>1. Upload</span>
+          </div>
+          <div className={`neo-tab ${step === 2 ? 'active' : ''}`} style={{ minHeight: '38px', fontSize: '0.88rem', gap: '6px' }}>
+            <span>2. Preview</span>
+          </div>
+          <div className={`neo-tab ${step === 3 ? 'active' : ''}`} style={{ minHeight: '38px', fontSize: '0.88rem', gap: '6px' }}>
+            <span>3. Options &amp; Order</span>
+          </div>
         </div>
 
         <div className="neo-card" style={{ padding: '30px' }}>
@@ -538,11 +536,13 @@ const UploadPage = () => {
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '5px' }}>
                 <h3 style={{ margin: 0 }}>File Upload</h3>
                 <button 
-                  className="neo-btn neo-btn-primary" 
+                  className={`neo-btn ${files.length > 0 ? 'neo-btn-cta pulse-cta' : ''}`}
                   disabled={files.length === 0}
                   onClick={() => { setActiveFileIndex(0); setPreviewPage(1); setStep(2); }}
+                  style={{ padding: '10px 20px', fontSize: '0.92rem' }}
                 >
-                  Next
+                  <span>Next: Preview</span>
+                  <ArrowRight size={16} />
                 </button>
               </div>
               <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '20px' }}>PDF, PNG, JPG, JPEG supported (Max 100MB per file). Select multiple files at once.</p>
@@ -602,9 +602,20 @@ const UploadPage = () => {
                   <div style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', textAlign: 'right', marginTop: '5px' }}>
                     Total: {files.length} file(s) · {totalFilesPages} page(s)
                   </div>
+
+                  {/* Prominent Full-Width Bottom Action Trigger */}
+                  <div style={{ marginTop: '20px' }}>
+                    <button 
+                      className="neo-btn neo-btn-cta pulse-cta" 
+                      style={{ width: '100%', padding: '15px', fontSize: '1rem', borderRadius: '14px', justifyContent: 'center' }}
+                      onClick={() => { setActiveFileIndex(0); setPreviewPage(1); setStep(2); }}
+                    >
+                      <span>Proceed to Preview ({files.length} file{files.length > 1 ? 's' : ''})</span>
+                      <ArrowRight size={18} />
+                    </button>
+                  </div>
                 </div>
               )}
-              
               
             </div>
           )}
@@ -656,10 +667,12 @@ const UploadPage = () => {
                 <div style={{ display: 'flex', gap: '10px' }}>
                   <button className="neo-btn" onClick={() => setStep(1)}>Back</button>
                   <button
-                    className="neo-btn neo-btn-primary"
+                    className="neo-btn neo-btn-cta pulse-cta"
                     onClick={() => setStep(3)}
+                    style={{ padding: '10px 20px', fontSize: '0.92rem' }}
                   >
-                    Next
+                    <span>Next: Options</span>
+                    <ArrowRight size={16} />
                   </button>
                 </div>
               </div>
@@ -682,7 +695,18 @@ const UploadPage = () => {
                   </div>
                 )}
               </div>
-              
+
+              {/* Prominent Full-Width Bottom Action Trigger */}
+              <div style={{ marginTop: '20px' }}>
+                <button 
+                  className="neo-btn neo-btn-cta pulse-cta" 
+                  style={{ width: '100%', padding: '15px', fontSize: '1rem', borderRadius: '14px', justifyContent: 'center' }}
+                  onClick={() => setStep(3)}
+                >
+                  <span>Proceed to Print Options</span>
+                  <ArrowRight size={18} />
+                </button>
+              </div>
               
             </div>
           )}
@@ -695,11 +719,12 @@ const UploadPage = () => {
                 <div style={{ display: 'flex', gap: '10px' }}>
                   <button className="neo-btn" onClick={() => setStep(2)}>Back</button>
                   <button 
-                    className="neo-btn neo-btn-primary" 
+                    className="neo-btn neo-btn-cta pulse-cta" 
                     disabled={placingOrder || totalPagesToPrint <= 0}
                     onClick={handlePlaceOrder}
+                    style={{ padding: '10px 18px', fontSize: '0.9rem' }}
                   >
-                    {placingOrder ? `Uploading ${files.length} file(s)...` : `Place Print Order (${files.length} file${files.length > 1 ? 's' : ''})`}
+                    <Printer size={16} /> {placingOrder ? 'Sending...' : `Confirm Order (₹${calculateTotal()})`}
                   </button>
                 </div>
               </div>
@@ -814,21 +839,33 @@ const UploadPage = () => {
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <span style={{ fontWeight: 700, fontSize: '1.1rem' }}>Total Cost:</span>
-                  <span style={{ fontWeight: 700, fontSize: '1.6rem', color: 'var(--accent-color)' }}>₹{calculateTotal()}</span>
+                  <span style={{ fontWeight: 800, fontSize: '1.6rem', color: 'var(--accent)' }}>₹{calculateTotal()}</span>
                 </div>
               </div>
 
               {/* Cash Payment Banner */}
-              <div className="neo-card-inset" style={{ padding: '15px', borderRadius: '12px', display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '25px' }}>
-                <Landmark size={20} style={{ color: 'var(--text-secondary)', flexShrink: 0 }} />
+              <div className="neo-card-inset" style={{ padding: '15px', borderRadius: '12px', display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '20px' }}>
+                <Landmark size={20} style={{ color: 'var(--accent)', flexShrink: 0 }} />
                 <div>
-                  <span style={{ fontSize: '0.85rem', fontWeight: 600 }}>Offline Cash Payment Only</span>
+                  <span style={{ fontSize: '0.85rem', fontWeight: 600 }}>Offline Cash / UPI at Counter</span>
                   <p style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', margin: 0 }}>
-                    Show your Print Order ID at the counter to pay and get your printouts.
+                    Pay at the shop counter when picking up your physical prints.
                   </p>
                 </div>
               </div>
-              
+
+              {/* Prominent Full-Width Bottom Checkout Button */}
+              <div style={{ marginTop: '10px' }}>
+                <button 
+                  className="neo-btn neo-btn-cta pulse-cta" 
+                  style={{ width: '100%', padding: '16px', fontSize: '1.05rem', borderRadius: '16px', justifyContent: 'center' }}
+                  disabled={placingOrder || totalPagesToPrint <= 0}
+                  onClick={handlePlaceOrder}
+                >
+                  <Printer size={20} />
+                  <span>{placingOrder ? `Uploading ${files.length} file(s)...` : `Confirm & Send to Printer (₹${calculateTotal()})`}</span>
+                </button>
+              </div>
               
             </div>
           )}
