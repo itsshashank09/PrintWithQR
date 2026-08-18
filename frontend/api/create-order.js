@@ -20,7 +20,15 @@ export default async function handler(req, res) {
   }
   
   try {
-    const { plan, amount: reqAmount, currency: reqCurrency } = req.body || {};
+    let body = req.body;
+    if (typeof body === 'string') {
+      try {
+        body = JSON.parse(body);
+      } catch (e) {
+        body = {};
+      }
+    }
+    const { plan, amount: reqAmount, currency: reqCurrency } = body || {};
 
     let amountInPaise = 9900; // Monthly plan ₹99 (9900 paise)
     if (reqAmount && typeof reqAmount === 'number') {
