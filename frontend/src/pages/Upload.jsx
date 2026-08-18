@@ -542,7 +542,7 @@ const UploadPage = () => {
                   style={{ padding: '10px 20px', fontSize: '0.92rem' }}
                 >
                   <span>Next: Preview</span>
-                  <ArrowRight size={16} />
+                  <span className="btn-arrow-move"><ArrowRight size={16} /></span>
                 </button>
               </div>
               <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '20px' }}>PDF, PNG, JPG, JPEG supported (Max 100MB per file). Select multiple files at once.</p>
@@ -611,7 +611,7 @@ const UploadPage = () => {
                       onClick={() => { setActiveFileIndex(0); setPreviewPage(1); setStep(2); }}
                     >
                       <span>Proceed to Preview ({files.length} file{files.length > 1 ? 's' : ''})</span>
-                      <ArrowRight size={18} />
+                      <span className="btn-arrow-move"><ArrowRight size={18} /></span>
                     </button>
                   </div>
                 </div>
@@ -672,7 +672,7 @@ const UploadPage = () => {
                     style={{ padding: '10px 20px', fontSize: '0.92rem' }}
                   >
                     <span>Next: Options</span>
-                    <ArrowRight size={16} />
+                    <span className="btn-arrow-move"><ArrowRight size={16} /></span>
                   </button>
                 </div>
               </div>
@@ -704,7 +704,7 @@ const UploadPage = () => {
                   onClick={() => setStep(3)}
                 >
                   <span>Proceed to Print Options</span>
-                  <ArrowRight size={18} />
+                  <span className="btn-arrow-move"><ArrowRight size={18} /></span>
                 </button>
               </div>
               
@@ -724,7 +724,8 @@ const UploadPage = () => {
                     onClick={handlePlaceOrder}
                     style={{ padding: '10px 18px', fontSize: '0.9rem' }}
                   >
-                    <Printer size={16} /> {placingOrder ? 'Sending...' : `Confirm Order (₹${calculateTotal()})`}
+                    <span className="btn-printer-pulse"><Printer size={16} /></span>
+                    <span>{placingOrder ? 'Sending...' : `Confirm Order (₹${calculateTotal()})`}</span>
                   </button>
                 </div>
               </div>
@@ -862,7 +863,7 @@ const UploadPage = () => {
                   disabled={placingOrder || totalPagesToPrint <= 0}
                   onClick={handlePlaceOrder}
                 >
-                  <Printer size={20} />
+                  <span className="btn-printer-pulse"><Printer size={20} /></span>
                   <span>{placingOrder ? `Uploading ${files.length} file(s)...` : `Confirm & Send to Printer (₹${calculateTotal()})`}</span>
                 </button>
               </div>
