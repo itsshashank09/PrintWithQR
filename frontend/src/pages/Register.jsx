@@ -93,9 +93,15 @@ const Register = () => {
         body: JSON.stringify(payload)
       });
 
-      const result = await response.json();
-      if (!response.ok) {
-        throw new Error(result.error || 'Registration failed.');
+      let result = null;
+      try {
+        result = await response.json();
+      } catch (jsonErr) {
+        console.warn('Non-JSON response from register API:', jsonErr);
+      }
+
+      if (!response.ok || !result || !result.shopId) {
+        throw new Error(result?.error || 'Registration service is updating. Please try again in a few moments.');
       }
 
       setRegistrationSuccess(true);
