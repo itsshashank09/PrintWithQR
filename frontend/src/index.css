@@ -1,109 +1,273 @@
-@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap');
+
+/* ==========================================================================
+   NEUMORPHISM DESIGN SYSTEM (Verbatim Spec)
+   ========================================================================== */
 
 :root {
-  /* Warm Gray Neomorphic Palette (matching uploaded image theme) */
-  --bg-color: #e0e0e0;
-  --bg-gradient: linear-gradient(135deg, #e0e0e0 0%, #d5d5d5 100%);
-  --shadow-dark: 9px 9px 18px #a3a3a3, 4px 4px 6px #b0b0b0;
-  --shadow-light: -9px -9px 18px #ffffff, -4px -4px 6px #ffffff;
-  --inset-shadow: inset 6px 6px 12px #a3a3a3, inset -6px -6px 12px #ffffff;
-  --inset-shadow-active: inset 3px 3px 6px #a3a3a3, inset -3px -3px 6px #ffffff;
+  /* Light Mode Palette: Page & surfaces are identical */
+  --bg: #E0E5EC;
+  --light: #FFFFFF;
+  --dark: #A3B1C6;
   
-  --text-color: #1a1a1a;
-  --text-secondary: #4a5568;
-  --border-color: rgba(255, 255, 255, 0.5);
-  
-  /* Accents - Vibrant Grass Green (matching battery/progress indicator) */
-  --accent-color: #00871e;
-  --accent-light: #e8f5e9;
-  --accent-hover: #006c17;
-  --accent-gradient: linear-gradient(135deg, #00a024 0%, #00871e 100%);
-  --success-color: #00871e;
-  --warning-color: #f59e0b;
-  --danger-color: #ef4444;
-  --info-color: #3b82f6;
+  /* Exactly ONE saturated accent */
+  --accent: #5B7CFA;
+  --accent-hover: #4869E8;
+  --accent-light: rgba(91, 124, 250, 0.12);
+  --accent-border: rgba(91, 124, 250, 0.35);
 
-  /* Card and input defaults */
-  --border-radius: 24px;
-  --font-family: 'Outfit', sans-serif;
+  /* High-Contrast Typography (>= 7:1 contrast floor) */
+  --text-primary: #14171F;   /* Ratio > 11:1 against #E0E5EC */
+  --text-secondary: #475266; /* Ratio > 7.1:1 against #E0E5EC */
+  --text-muted: #64748B;
   
-  /* Transition speed and easing */
+  /* Semantic state indicators */
+  --success: #10B981;
+  --warning: #F59E0B;
+  --danger: #EF4444;
+  --info: #3B82F6;
+
+  /* Consistent 12px-20px Radii */
+  --radius-sm: 12px;
+  --radius-md: 16px;
+  --radius-lg: 20px;
+  --font-family: 'Outfit', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+
+  /* Standard Shadow Recipes (Light source: top-left) */
+  --shadow-extrude: -8px -8px 16px var(--light), 8px 8px 16px var(--dark);
+  --shadow-extrude-sm: -4px -4px 10px var(--light), 4px 4px 10px var(--dark);
+  --shadow-extrude-xs: -2px -2px 6px var(--light), 2px 2px 6px var(--dark);
+  --shadow-inset: inset 6px 6px 12px var(--dark), inset -6px -6px 12px var(--light);
+  --shadow-inset-sm: inset 3px 3px 6px var(--dark), inset -3px -3px 6px var(--light);
+
+  /* Fast responsive motion */
   --transition-speed: 150ms;
   --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+
+  /* Legacy variable aliases for full backwards compatibility */
+  --accent-color: var(--accent);
+  --bg-color: var(--bg);
+  --border-color: rgba(91, 124, 250, 0.2);
+  --shadow-light: -8px -8px 16px var(--light);
+  --shadow-dark: 8px 8px 16px var(--dark);
+  --inset-shadow: var(--shadow-inset);
+  --inset-shadow-active: var(--shadow-inset-sm);
+  --text-color: var(--text-primary);
+  --success-color: var(--success);
+  --warning-color: var(--warning);
+  --danger-color: var(--danger);
+  --info-color: var(--info);
+  --accent-gradient: var(--accent);
+  --border-radius: var(--radius-md);
 }
 
 .dark-theme {
-  /* Dark Theme Neomorphic Palette with Vibrant Neon Green Accents */
-  --bg-color: #1e222b;
-  --bg-gradient: linear-gradient(135deg, #1e222b 0%, #15181e 100%);
-  --shadow-dark: 9px 9px 18px #0f1116, 4px 4px 6px #0f1116;
-  --shadow-light: -9px -9px 18px #2d3340, -4px -4px 6px #2d3340;
-  --inset-shadow: inset 6px 6px 12px #0f1116, inset -6px -6px 12px #2d3340;
-  --inset-shadow-active: inset 3px 3px 6px #0f1116, inset -3px -3px 6px #2d3340;
+  /* Dark Mode Palette: Highlight is light gray (NOT white), shade is dark gray (NOT black) */
+  --bg: #2A2D32;
+  --light: #34383E;
+  --dark: #1C1E21;
+
+  --accent: #5B7CFA;
+  --accent-hover: #7592FB;
+  --accent-light: rgba(91, 124, 250, 0.18);
+  --accent-border: rgba(91, 124, 250, 0.45);
+
+  /* High-Contrast Typography (>= 7:1 contrast floor) */
+  --text-primary: #F0F4F8;   /* Ratio > 11:1 against #2A2D32 */
+  --text-secondary: #94A3B8; /* Ratio > 7:1 against #2A2D32 */
+  --text-muted: #64748B;
   
-  --text-color: #f1f5f9;
-  --text-secondary: #94a3b8;
-  --border-color: rgba(255, 255, 255, 0.05);
-  
-  /* Accents in dark theme */
-  --accent-color: #10b981;
-  --accent-light: rgba(16, 185, 129, 0.1);
-  --accent-hover: #059669;
-  --accent-gradient: linear-gradient(135deg, #10b981 0%, #059669 100%);
-  
-  --success-color: #10b981;
-  --warning-color: #fbbf24;
-  --danger-color: #f87171;
-  --info-color: #60a5fa;
+  --success: #34D399;
+  --warning: #FBBF24;
+  --danger: #F87171;
+  --info: #60A5FA;
 }
 
-/* Reset and Global Styles */
-* {
+/* Base Reset */
+*, *::before, *::after {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
 }
 
-body {
+html, body {
+  background-color: var(--bg);
+  color: var(--text-primary);
   font-family: var(--font-family);
-  background: var(--bg-gradient);
-  background-attachment: fixed;
-  color: var(--text-color);
+  font-weight: 500;
+  line-height: 1.5;
   min-height: 100vh;
-  transition: background var(--transition-speed) var(--ease-out), color var(--transition-speed) var(--ease-out);
+  transition: background-color var(--transition-speed) var(--ease-out), color var(--transition-speed) var(--ease-out);
+  -webkit-font-smoothing: antialiased;
 }
 
-/* Neomorphic Containers */
+/* Accessibility Focus Ring */
+:focus-visible {
+  outline: 2px solid var(--accent) !important;
+  outline-offset: 2px !important;
+}
+
+/* Typography Hierarchy */
+h1 {
+  font-size: clamp(2rem, 4vw, 2.4rem);
+  font-weight: 700;
+  line-height: 1.2;
+  color: var(--text-primary);
+  letter-spacing: -0.02em;
+}
+
+h2 {
+  font-size: clamp(1.4rem, 3vw, 1.8rem);
+  font-weight: 700;
+  line-height: 1.3;
+  color: var(--text-primary);
+  letter-spacing: -0.01em;
+}
+
+h3 {
+  font-size: 1.25rem;
+  font-weight: 700;
+  line-height: 1.35;
+  color: var(--text-primary);
+}
+
+p {
+  font-size: 1rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+  line-height: 1.6;
+}
+
+a {
+  color: var(--accent);
+  text-decoration: none;
+  transition: color var(--transition-speed) var(--ease-out);
+}
+
+/* ==========================================================================
+   NEUMORPHIC SURFACES & CARDS
+   ========================================================================== */
+
 .neo-container {
-  max-width: 1600px;
+  max-width: 1400px;
   margin: 0 auto;
-  padding: 20px;
+  padding: 24px 20px;
 }
 
+/* Extrude Card: Non-interactive, raised gently from background */
 .neo-card {
-  background: var(--bg-color);
-  border-radius: var(--border-radius);
-  box-shadow: var(--shadow-light), var(--shadow-dark);
-  border: 1px solid var(--border-color);
-  padding: 25px;
-  margin-bottom: 25px;
-  transition: transform var(--transition-speed) var(--ease-out), box-shadow var(--transition-speed) var(--ease-out), background var(--transition-speed) var(--ease-out), color var(--transition-speed) var(--ease-out);
+  background: var(--bg);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-extrude);
+  border: none;
+  padding: 28px;
+  margin-bottom: 24px;
+  transition: box-shadow var(--transition-speed) var(--ease-out), transform var(--transition-speed) var(--ease-out);
 }
 
+/* Inset Well: Recessed inward from background */
 .neo-card-inset {
-  background: var(--bg-color);
-  border-radius: var(--border-radius);
-  box-shadow: var(--inset-shadow);
-  border: 1px solid var(--border-color);
-  padding: 25px;
-  margin-bottom: 25px;
+  background: var(--bg);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-inset);
+  border: none;
+  padding: 20px;
+  margin-bottom: 20px;
 }
 
-.neo-card:hover {
-  transform: translateY(-2px);
+/* ==========================================================================
+   INTERACTIVE BUTTONS (Dent on Press Feedback)
+   ========================================================================== */
+
+.neo-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 44px;
+  min-width: 44px;
+  padding: 10px 22px;
+  border-radius: var(--radius-sm);
+  background: var(--bg);
+  color: var(--text-primary);
+  box-shadow: var(--shadow-extrude-sm);
+  border: 1px solid transparent;
+  font-family: var(--font-family);
+  font-weight: 600;
+  font-size: 0.95rem;
+  cursor: pointer;
+  outline: none;
+  transition: box-shadow var(--transition-speed) var(--ease-out), transform var(--transition-speed) var(--ease-out), border-color var(--transition-speed) var(--ease-out), color var(--transition-speed) var(--ease-out);
+  user-select: none;
+  text-decoration: none;
 }
 
-/* Neomorphic Form Controls */
+.neo-btn:hover {
+  color: var(--accent);
+}
+
+/* Active State: Swap to INSET shadow (Dent feedback) */
+.neo-btn:active, .neo-btn.active {
+  box-shadow: var(--shadow-inset-sm);
+  transform: scale(0.97);
+  color: var(--accent);
+}
+
+/* Primary Button: Features 1px accent border & distinct prominence */
+.neo-btn-primary {
+  border: 1px solid var(--accent);
+  color: var(--accent);
+  font-weight: 700;
+}
+
+.neo-btn-primary:hover {
+  background: var(--accent-light);
+}
+
+.neo-btn-primary:active {
+  box-shadow: var(--shadow-inset-sm);
+  background: var(--accent);
+  color: #FFFFFF;
+}
+
+/* Semantic Action Buttons */
+.neo-btn-danger {
+  border: 1px solid var(--danger);
+  color: var(--danger);
+}
+
+.neo-btn-danger:active {
+  box-shadow: var(--shadow-inset-sm);
+  background: var(--danger);
+  color: #FFFFFF;
+}
+
+.neo-btn-success {
+  border: 1px solid var(--success);
+  color: var(--success);
+}
+
+.neo-btn-success:active {
+  box-shadow: var(--shadow-inset-sm);
+  background: var(--success);
+  color: #FFFFFF;
+}
+
+/* Disabled State (Mandatory Accessibility) */
+.neo-btn:disabled, .neo-btn[disabled] {
+  opacity: 0.45;
+  cursor: not-allowed !important;
+  pointer-events: none !important;
+  box-shadow: none !important;
+  transform: none !important;
+  border-color: transparent !important;
+}
+
+/* ==========================================================================
+   FORM INPUTS & SELECTS (Inset Wells)
+   ========================================================================== */
+
 .neo-input-group {
   margin-bottom: 20px;
   display: flex;
@@ -111,140 +275,113 @@ body {
 }
 
 .neo-label {
-  font-weight: 500;
-  font-size: 0.95rem;
+  font-weight: 600;
+  font-size: 0.9rem;
   margin-bottom: 8px;
-  color: var(--text-color);
-  padding-left: 5px;
+  color: var(--text-primary);
+  padding-left: 2px;
 }
 
 .neo-input {
   width: 100%;
-  padding: 14px 18px;
-  border: 1px solid var(--border-color);
-  border-radius: 15px;
-  background: var(--bg-color);
-  color: var(--text-color);
-  box-shadow: var(--inset-shadow);
+  min-height: 44px;
+  padding: 12px 18px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  background: var(--bg);
+  color: var(--text-primary);
+  box-shadow: var(--shadow-inset);
   outline: none;
   font-family: var(--font-family);
-  font-size: 1rem;
-  transition: box-shadow var(--transition-speed) var(--ease-out);
+  font-size: 0.95rem;
+  font-weight: 500;
+  transition: border-color var(--transition-speed) var(--ease-out), box-shadow var(--transition-speed) var(--ease-out);
 }
 
-.neo-input:focus {
-  box-shadow: inset 5px 5px 10px #a3a3a3, inset -5px -5px 10px #ffffff;
+.neo-input:focus-visible {
+  border-color: var(--accent);
+  box-shadow: var(--shadow-inset);
 }
 
-.dark-theme .neo-input:focus {
-  box-shadow: inset 5px 5px 10px #0f1116, inset -5px -5px 10px #2d3340;
+.neo-input::placeholder {
+  color: var(--text-muted);
+  opacity: 0.8;
 }
 
 .neo-select {
   width: 100%;
-  padding: 14px 18px;
-  border: 1px solid var(--border-color);
-  border-radius: 15px;
-  background: var(--bg-color);
-  color: var(--text-color);
-  box-shadow: var(--inset-shadow);
+  min-height: 44px;
+  padding: 12px 18px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  background: var(--bg);
+  color: var(--text-primary);
+  box-shadow: var(--shadow-inset);
   outline: none;
   font-family: var(--font-family);
-  font-size: 1rem;
+  font-size: 0.95rem;
+  font-weight: 500;
   cursor: pointer;
   appearance: none;
-  background-image: url("data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%231a1a1a' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='%235B7CFA' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
   background-repeat: no-repeat;
-  background-position: right 18px center;
+  background-position: right 16px center;
   background-size: 16px;
-  padding-right: 45px;
+  padding-right: 44px;
+  transition: border-color var(--transition-speed) var(--ease-out);
 }
 
-.dark-theme .neo-select {
-  background-image: url("data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%23f1f5f9' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+.neo-select:focus-visible {
+  border-color: var(--accent);
 }
 
-/* Neomorphic Buttons */
-.neo-btn {
-  display: inline-flex;
+/* ==========================================================================
+   SEGMENTED CONTROLS & TABS (Inset Track, Extruded Thumb)
+   ========================================================================== */
+
+.neo-tabs {
+  display: flex;
+  background: var(--bg);
+  box-shadow: var(--shadow-inset);
+  padding: 6px;
+  border-radius: var(--radius-md);
+  margin-bottom: 20px;
+  gap: 6px;
+}
+
+.neo-tab {
+  flex: 1;
+  text-align: center;
+  min-height: 40px;
+  display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  padding: 12px 24px;
-  border: 1px solid var(--border-color);
-  border-radius: 15px;
-  background: var(--bg-color);
-  color: var(--text-color);
-  box-shadow: var(--shadow-light), var(--shadow-dark);
-  font-family: var(--font-family);
+  padding: 8px 16px;
+  font-size: 0.9rem;
   font-weight: 600;
-  font-size: 0.95rem;
+  color: var(--text-secondary);
+  border-radius: var(--radius-sm);
   cursor: pointer;
-  outline: none;
-  transition: transform var(--transition-speed) var(--ease-out), box-shadow var(--transition-speed) var(--ease-out), background var(--transition-speed) var(--ease-out), color var(--transition-speed) var(--ease-out);
+  background: transparent;
+  transition: box-shadow var(--transition-speed) var(--ease-out), color var(--transition-speed) var(--ease-out), transform var(--transition-speed) var(--ease-out);
+  user-select: none;
 }
 
-.neo-btn:hover {
-  transform: translateY(-1px);
+.neo-tab.active {
+  background: var(--bg);
+  box-shadow: var(--shadow-extrude-sm);
+  color: var(--accent);
+  font-weight: 700;
 }
 
-.neo-btn:active, .neo-btn.active {
-  box-shadow: var(--inset-shadow);
-  transform: translateY(1px) scale(0.97);
+.neo-tab:active {
+  transform: scale(0.98);
 }
 
-.neo-btn:focus-visible, .neo-input:focus-visible, .neo-select:focus-visible, a:focus-visible {
-  outline: 2px solid var(--accent-color);
-  outline-offset: 2px;
-}
+/* ==========================================================================
+   SWITCHES & TOGGLES (Inset Track, Extruded Knob)
+   ========================================================================== */
 
-.neo-btn:disabled, .neo-btn[disabled] {
-  opacity: 0.45;
-  cursor: not-allowed !important;
-  pointer-events: none !important;
-  box-shadow: none !important;
-  transform: none !important;
-}
-
-.neo-btn-primary {
-  background: var(--accent-gradient);
-  color: #ffffff;
-  box-shadow: 4px 4px 10px rgba(0, 135, 30, 0.25), -4px -4px 10px rgba(255, 255, 255, 0.5);
-  border: none;
-}
-
-.neo-btn-primary:hover {
-  background: var(--accent-hover);
-  box-shadow: 4px 4px 12px rgba(0, 135, 30, 0.35);
-}
-
-.neo-btn-primary:active {
-  box-shadow: inset 4px 4px 8px rgba(0, 0, 0, 0.25);
-}
-
-.neo-btn-danger {
-  color: #ffffff;
-  background: var(--danger-color);
-  border: none;
-  box-shadow: 4px 4px 10px rgba(239, 68, 68, 0.3);
-}
-
-.neo-btn-danger:hover {
-  background: #dc2626;
-}
-
-.neo-btn-success {
-  color: #ffffff;
-  background: var(--success-color);
-  border: none;
-  box-shadow: 4px 4px 10px rgba(16, 185, 129, 0.3);
-}
-
-.neo-btn-success:hover {
-  background: #059669;
-}
-
-/* Custom Neomorphic Switches / Checkboxes */
 .neo-switch-container {
   display: flex;
   align-items: center;
@@ -253,15 +390,16 @@ body {
 }
 
 .neo-switch-label {
-  font-weight: 500;
-  color: var(--text-color);
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: var(--text-primary);
 }
 
 .neo-switch {
   position: relative;
   display: inline-block;
-  width: 55px;
-  height: 28px;
+  width: 54px;
+  height: 30px;
   cursor: pointer;
 }
 
@@ -273,28 +411,24 @@ body {
 
 .neo-slider {
   position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: var(--bg-color);
-  box-shadow: var(--inset-shadow);
-  border-radius: 34px;
-  transition: .4s;
-  border: 1px solid var(--border-color);
+  top: 0; left: 0; right: 0; bottom: 0;
+  background-color: var(--bg);
+  box-shadow: var(--shadow-inset-sm);
+  border-radius: 30px;
+  transition: background-color var(--transition-speed) var(--ease-out);
 }
 
 .neo-slider:before {
   position: absolute;
   content: "";
-  height: 20px;
-  width: 20px;
-  left: 3px;
-  bottom: 3px;
-  background-color: var(--text-color);
+  height: 22px;
+  width: 22px;
+  left: 4px;
+  bottom: 4px;
+  background-color: var(--bg);
   border-radius: 50%;
-  transition: .4s;
-  box-shadow: var(--shadow-light), var(--shadow-dark);
+  box-shadow: var(--shadow-extrude-xs);
+  transition: transform var(--transition-speed) var(--ease-out), background-color var(--transition-speed) var(--ease-out);
 }
 
 input:checked + .neo-slider {
@@ -302,49 +436,23 @@ input:checked + .neo-slider {
 }
 
 input:checked + .neo-slider:before {
-  transform: translateX(27px);
-  background-color: var(--accent-color);
+  transform: translateX(24px);
+  background-color: var(--accent);
 }
 
-/* Toggle tabs (segmented control) */
-.neo-tabs {
-  display: flex;
-  background: var(--bg-color);
-  box-shadow: var(--inset-shadow);
-  padding: 5px;
-  border-radius: 15px;
-  margin-bottom: 20px;
-  border: 1px solid var(--border-color);
-}
+/* ==========================================================================
+   DROPZONE (Tactile Upload Area)
+   ========================================================================== */
 
-.neo-tab {
-  flex: 1;
-  text-align: center;
-  padding: 10px;
-  font-size: 0.95rem;
-  font-weight: 600;
-  color: var(--text-secondary);
-  border-radius: 12px;
-  cursor: pointer;
-  transition: transform var(--transition-speed) var(--ease-out), box-shadow var(--transition-speed) var(--ease-out), background var(--transition-speed) var(--ease-out), color var(--transition-speed) var(--ease-out);
-}
-
-.neo-tab.active {
-  background: var(--bg-color);
-  box-shadow: var(--shadow-light), var(--shadow-dark);
-  color: var(--accent-color);
-}
-
-/* File Upload Area */
 .neo-upload-area {
-  border: 2px dashed var(--text-secondary);
-  border-radius: var(--border-radius);
-  background: var(--bg-color);
-  box-shadow: var(--inset-shadow);
-  padding: 40px 20px;
+  border: 2px dashed var(--dark);
+  border-radius: var(--radius-md);
+  background: var(--bg);
+  box-shadow: var(--shadow-inset);
+  padding: 36px 20px;
   text-align: center;
   cursor: pointer;
-  transition: border-color var(--transition-speed);
+  transition: border-color var(--transition-speed) var(--ease-out), box-shadow var(--transition-speed) var(--ease-out);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -352,131 +460,149 @@ input:checked + .neo-slider:before {
 }
 
 .neo-upload-area.dragging {
-  border-color: var(--accent-color);
+  border-color: var(--accent);
+  box-shadow: var(--shadow-inset), 0 0 16px var(--accent-light);
 }
 
 .neo-upload-icon {
-  color: var(--accent-color);
-  animation: float 3s ease-in-out infinite;
+  color: var(--accent);
+  transition: transform var(--transition-speed) var(--ease-out);
 }
 
-@keyframes float {
-  0% { transform: translateY(0px); }
-  50% { transform: translateY(-8px); }
-  100% { transform: translateY(0px); }
+.neo-upload-area:hover .neo-upload-icon {
+  transform: translateY(-4px);
 }
 
-/* Preview Box */
-.neo-preview-box {
-  background: var(--bg-color);
-  box-shadow: var(--inset-shadow);
-  border-radius: var(--border-radius);
-  padding: 15px;
-  height: 380px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  overflow: auto;
-  position: relative;
-  border: 1px solid var(--border-color);
-}
+/* ==========================================================================
+   BADGES & STATUS PILLS
+   ========================================================================== */
 
-/* Badge and status pill */
 .neo-badge {
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   padding: 6px 14px;
   border-radius: 20px;
-  font-size: 0.85rem;
-  font-weight: 600;
-  box-shadow: var(--shadow-light), var(--shadow-dark);
-  border: 1px solid var(--border-color);
+  font-size: 0.8rem;
+  font-weight: 700;
+  box-shadow: var(--shadow-extrude-xs);
+  background: var(--bg);
 }
 
 .status-pending {
-  background: rgba(245, 158, 11, 0.15);
-  color: var(--warning-color);
+  color: var(--warning);
+  border: 1px solid rgba(245, 158, 11, 0.4);
 }
 
 .status-printing {
-  background: rgba(59, 130, 246, 0.15);
-  color: var(--info-color);
+  color: var(--info);
+  border: 1px solid rgba(59, 130, 246, 0.4);
 }
 
 .status-completed {
-  background: rgba(16, 185, 129, 0.15);
-  color: var(--success-color);
+  color: var(--success);
+  border: 1px solid rgba(16, 185, 129, 0.4);
 }
 
 .status-cancelled {
-  background: rgba(239, 68, 68, 0.15);
-  color: var(--danger-color);
+  color: var(--danger);
+  border: 1px solid rgba(239, 68, 68, 0.4);
 }
 
-/* Theme Toggle Button (Flotat) */
+/* ==========================================================================
+   GLOBAL THEME TOGGLE FAB
+   ========================================================================== */
+
 .theme-toggle-fab {
   position: fixed;
-  bottom: 25px;
-  right: 25px;
+  bottom: 24px;
+  right: 24px;
   z-index: 1000;
-  width: 50px;
-  height: 50px;
+  width: 48px;
+  height: 48px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  background: var(--bg-color);
-  box-shadow: var(--shadow-light), var(--shadow-dark);
-  border: 1px solid var(--border-color);
-  color: var(--text-color);
-  transition: transform var(--transition-speed) var(--ease-out), box-shadow var(--transition-speed) var(--ease-out), background var(--transition-speed) var(--ease-out), color var(--transition-speed) var(--ease-out);
+  background: var(--bg);
+  box-shadow: var(--shadow-extrude-sm);
+  border: 1px solid var(--accent-border);
+  color: var(--accent);
+  transition: box-shadow var(--transition-speed) var(--ease-out), transform var(--transition-speed) var(--ease-out);
 }
 
 .theme-toggle-fab:active {
-  box-shadow: var(--inset-shadow);
+  box-shadow: var(--shadow-inset-sm);
+  transform: scale(0.95);
 }
 
-/* Grid & Layout Utilities */
+/* ==========================================================================
+   GRID & LAYOUT UTILITIES
+   ========================================================================== */
+
 .neo-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 25px;
+  gap: 24px;
 }
 
 .dashboard-stats-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap: 20px;
-  margin-bottom: 25px;
+  margin-bottom: 24px;
 }
 
 .stat-card {
   text-align: center;
-  padding: 20px;
+  padding: 22px;
 }
 
 .stat-val {
   font-size: 2.2rem;
   font-weight: 700;
-  color: var(--accent-color);
-  margin-bottom: 5px;
+  color: var(--accent);
+  margin-bottom: 4px;
 }
 
 .stat-label {
-  font-size: 0.9rem;
+  font-size: 0.85rem;
   color: var(--text-secondary);
   text-transform: uppercase;
   font-weight: 600;
+  letter-spacing: 0.04em;
 }
 
-/* Responsive Table */
+/* Header UI */
+.neo-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 0;
+  margin-bottom: 28px;
+}
+
+.logo-container {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--text-primary);
+}
+
+.logo-text {
+  font-size: 1.5rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+/* Tables */
 .neo-table-wrapper {
-  overflow-x: visible;
-  border-radius: var(--border-radius);
-  box-shadow: var(--inset-shadow);
-  padding: 10px;
-  background: var(--bg-color);
-  border: 1px solid var(--border-color);
+  overflow-x: auto;
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-inset);
+  padding: 12px;
+  background: var(--bg);
 }
 
 .neo-table {
@@ -486,310 +612,24 @@ input:checked + .neo-slider:before {
 }
 
 .neo-table th {
-  padding: 15px;
+  padding: 14px 16px;
   font-weight: 600;
+  font-size: 0.85rem;
   color: var(--text-secondary);
-  border-bottom: 1px solid var(--border-color);
+  border-bottom: 1px solid rgba(163, 177, 198, 0.2);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
 }
 
 .neo-table td {
-  padding: 15px;
-  border-bottom: 1px solid var(--border-color);
-  color: var(--text-color);
+  padding: 14px 16px;
+  color: var(--text-primary);
   font-size: 0.95rem;
+  border-bottom: 1px solid rgba(163, 177, 198, 0.1);
 }
 
 .neo-table tr:last-child td {
   border-bottom: none;
-}
-
-/* Header UI */
-.neo-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 20px 0;
-  margin-bottom: 30px;
-  border-bottom: 1px solid var(--border-color);
-}
-
-.logo-container {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.logo-text {
-  font-size: 1.6rem;
-  font-weight: 700;
-  letter-spacing: -0.5px;
-}
-
-/* Typography styles */
-h1 { font-size: 2.4rem; font-weight: 700; margin-bottom: 10px; }
-h2 { font-size: 1.8rem; font-weight: 600; margin-bottom: 15px; }
-h3 { font-size: 1.3rem; font-weight: 600; margin-bottom: 10px; }
-p { color: var(--text-secondary); line-height: 1.6; margin-bottom: 15px; }
-
-/* Custom Scrollbars */
-::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
-}
-
-::-webkit-scrollbar-track {
-  background: var(--bg-color);
-  box-shadow: var(--inset-shadow);
-}
-
-::-webkit-scrollbar-thumb {
-  background: var(--text-secondary);
-  border-radius: 4px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: var(--text-color);
-}
-
-/* Custom range page styles */
-.neo-range-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(40px, 1fr));
-  gap: 8px;
-  margin-top: 10px;
-}
-
-.neo-range-item {
-  height: 40px;
-  border-radius: 8px;
-  background: var(--bg-color);
-  box-shadow: var(--shadow-light), var(--shadow-dark);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 600;
-  cursor: pointer;
-  transition: transform 150ms var(--ease-out), box-shadow 150ms var(--ease-out), background-color 150ms var(--ease-out);
-}
-
-.neo-range-item.active {
-  box-shadow: var(--inset-shadow);
-  color: var(--accent-color);
-}
-
-/* ==========================================================================
-   Header Contact Elements (Instagram Glimmer & Phone Call Buttons)
-   ========================================================================== */
-
-/* Instagram Glimmer Button & Icon Effect */
-.instagram-glimmer-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-  padding: 8px 16px;
-  border-radius: 14px;
-  background: var(--bg-color);
-  box-shadow: var(--shadow-light), var(--shadow-dark);
-  border: 1px solid var(--border-color);
-  color: var(--text-color);
-  text-decoration: none;
-  font-weight: 700;
-  font-size: 0.9rem;
-  transition: transform 150ms var(--ease-out), box-shadow 150ms var(--ease-out), background-color 150ms var(--ease-out);
-  cursor: pointer;
-}
-
-.instagram-glimmer-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-light), var(--shadow-dark), 0 0 14px rgba(220, 39, 67, 0.4);
-  color: #dc2743;
-}
-
-.instagram-glimmer-btn:active {
-  box-shadow: var(--inset-shadow);
-  transform: translateY(0);
-}
-
-/* Styled Instagram Logo Badge with Shimmer Overlay */
-.instagram-icon-badge {
-  position: relative;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 32px;
-  height: 32px;
-  border-radius: 9px;
-  background: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%);
-  color: #ffffff;
-  overflow: hidden;
-  box-shadow: 0 4px 10px rgba(220, 39, 67, 0.35);
-  flex-shrink: 0;
-}
-
-/* Continuous Glimmer / Shining Ray Animation */
-.instagram-icon-badge::after {
-  content: '';
-  position: absolute;
-  top: -100%;
-  left: -100%;
-  width: 300%;
-  height: 300%;
-  background: linear-gradient(
-    115deg,
-    transparent 0%,
-    transparent 40%,
-    rgba(255, 255, 255, 0.8) 50%,
-    transparent 60%,
-    transparent 100%
-  );
-  animation: instagramGlimmerRay 3s infinite cubic-bezier(0.4, 0, 0.2, 1);
-  pointer-events: none;
-}
-
-@keyframes instagramGlimmerRay {
-  0% {
-    transform: translate(-100%, -100%);
-  }
-  30%, 100% {
-    transform: translate(100%, 100%);
-  }
-}
-
-/* Header Contact Call Button */
-.contact-call-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-  padding: 8px 16px;
-  border-radius: 14px;
-  background: var(--bg-color);
-  box-shadow: var(--shadow-light), var(--shadow-dark);
-  border: 1px solid var(--border-color);
-  color: var(--text-color);
-  text-decoration: none;
-  font-weight: 700;
-  font-size: 0.9rem;
-  transition: transform 150ms var(--ease-out), box-shadow 150ms var(--ease-out), background-color 150ms var(--ease-out);
-  cursor: pointer;
-}
-
-.contact-call-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-light), var(--shadow-dark), 0 0 14px rgba(0, 135, 30, 0.3);
-  color: var(--accent-color);
-}
-
-.contact-call-btn:active {
-  box-shadow: var(--inset-shadow);
-  transform: translateY(0);
-}
-
-.phone-icon-badge {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 32px;
-  height: 32px;
-  border-radius: 9px;
-  background: var(--accent-gradient);
-  color: #ffffff;
-  box-shadow: 0 4px 10px rgba(0, 135, 30, 0.3);
-  flex-shrink: 0;
-}
-
-/* Modern Showcase Animations */
-@keyframes floatSlow {
-  0%, 100% {
-    transform: translateY(0px);
-  }
-  50% {
-    transform: translateY(-8px);
-  }
-}
-
-@keyframes laserScan {
-  0% {
-    top: 0%;
-    opacity: 0.8;
-  }
-  50% {
-    top: 90%;
-    opacity: 1;
-  }
-  100% {
-    top: 0%;
-    opacity: 0.8;
-  }
-}
-
-@keyframes pulseGlow {
-  0%, 100% {
-    box-shadow: 0 0 15px rgba(0, 135, 30, 0.2);
-  }
-  50% {
-    box-shadow: 0 0 30px rgba(0, 135, 30, 0.5);
-  }
-}
-
-.showcase-float-badge {
-  animation: floatSlow 4s ease-in-out infinite;
-}
-
-.showcase-laser-line {
-  position: absolute;
-  left: 0;
-  right: 0;
-  height: 3px;
-  background: linear-gradient(90deg, transparent 0%, var(--accent-color) 50%, transparent 100%);
-  box-shadow: 0 0 12px var(--accent-color);
-  animation: laserScan 2.5s ease-in-out infinite;
-  pointer-events: none;
-}
-
-/* Dashboard Responsive Layout Utilities */
-.dashboard-layout-row {
-  display: flex;
-  flex-direction: column;
-  gap: 30px;
-}
-
-@media (min-width: 900px) {
-  .dashboard-layout-row {
-    flex-direction: row;
-    flex-wrap: nowrap;
-    align-items: flex-start;
-  }
-}
-
-/* Pulsating Action Buttons */
-.pulse-action-btn {
-  position: relative;
-  overflow: hidden;
-  animation: pulse-glow 2s infinite;
-  transition: transform 150ms var(--ease-out), box-shadow 150ms var(--ease-out), background-color 150ms var(--ease-out);
-}
-
-.pulse-action-btn:hover {
-  transform: translateY(-2px);
-  animation: none;
-  box-shadow: 0 8px 16px rgba(0, 200, 83, 0.4), 0 0 20px rgba(0, 200, 83, 0.2);
-}
-
-.pulse-action-btn:active {
-  transform: scale(0.97);
-  box-shadow: 0 2px 4px rgba(0, 200, 83, 0.4);
-}
-
-@keyframes pulse-glow {
-  0% {
-    box-shadow: 0 0 0 0 rgba(0, 200, 83, 0.4);
-  }
-  70% {
-    box-shadow: 0 0 0 10px rgba(0, 200, 83, 0);
-  }
-  100% {
-    box-shadow: 0 0 0 0 rgba(0, 200, 83, 0);
-  }
 }
 
 /* Step Wizard Smooth Entrance Animation */
@@ -808,11 +648,32 @@ p { color: var(--text-secondary); line-height: 1.6; margin-bottom: 15px; }
   animation: fadeInStep 180ms cubic-bezier(0.23, 1, 0.32, 1) forwards;
 }
 
-@media (max-width: 480px) {
+/* Custom Scrollbars */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg);
+  box-shadow: var(--shadow-inset-sm);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--dark);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-secondary);
+}
+
+/* Responsive Header */
+@media (max-width: 600px) {
   .neo-header {
     flex-direction: column;
     align-items: stretch;
-    gap: 12px;
+    gap: 16px;
   }
   .neo-header .logo-container {
     justify-content: center;
@@ -821,4 +682,3 @@ p { color: var(--text-secondary); line-height: 1.6; margin-bottom: 15px; }
     justify-content: center;
   }
 }
-

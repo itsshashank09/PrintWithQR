@@ -517,15 +517,15 @@ const UploadPage = () => {
         
         {/* Progress Bar / Step Indicator */}
         <div className="neo-card-inset" style={{ padding: '12px 20px', borderRadius: '15px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '25px' }}>
-          <span style={{ fontWeight: 700, fontSize: '0.85rem', color: step === 1 ? 'var(--accent-color)' : 'var(--text-secondary)' }}>
+          <span style={{ fontWeight: 700, fontSize: '0.85rem', color: step === 1 ? 'var(--accent)' : 'var(--text-secondary)' }}>
             1. Upload
           </span>
           <div style={{ width: '30px', height: '2px', background: 'var(--border-color)' }}></div>
-          <span style={{ fontWeight: 700, fontSize: '0.85rem', color: step === 2 ? 'var(--accent-color)' : 'var(--text-secondary)' }}>
+          <span style={{ fontWeight: 700, fontSize: '0.85rem', color: step === 2 ? 'var(--accent)' : 'var(--text-secondary)' }}>
             2. Preview
           </span>
           <div style={{ width: '30px', height: '2px', background: 'var(--border-color)' }}></div>
-          <span style={{ fontWeight: 700, fontSize: '0.85rem', color: step === 3 ? 'var(--accent-color)' : 'var(--text-secondary)' }}>
+          <span style={{ fontWeight: 700, fontSize: '0.85rem', color: step === 3 ? 'var(--accent)' : 'var(--text-secondary)' }}>
             3. Options & Order
           </span>
         </div>
@@ -538,7 +538,7 @@ const UploadPage = () => {
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '5px' }}>
                 <h3 style={{ margin: 0 }}>File Upload</h3>
                 <button 
-                  className="neo-btn neo-btn-primary pulse-action-btn" 
+                  className="neo-btn neo-btn-primary" 
                   disabled={files.length === 0}
                   onClick={() => { setActiveFileIndex(0); setPreviewPage(1); setStep(2); }}
                 >
@@ -580,7 +580,7 @@ const UploadPage = () => {
                     }}>
                       <div style={{ flex: 1, minWidth: 0 }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                          <FileText size={16} style={{ color: 'var(--accent-color)', flexShrink: 0 }} />
+                          <FileText size={16} style={{ color: 'var(--accent)', flexShrink: 0 }} />
                           <span style={{ fontWeight: 600, fontSize: '0.88rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                             {entry.file.name}
                           </span>
@@ -656,7 +656,7 @@ const UploadPage = () => {
                 <div style={{ display: 'flex', gap: '10px' }}>
                   <button className="neo-btn" onClick={() => setStep(1)}>Back</button>
                   <button
-                    className="neo-btn neo-btn-primary pulse-action-btn"
+                    className="neo-btn neo-btn-primary"
                     onClick={() => setStep(3)}
                   >
                     Next
@@ -695,7 +695,7 @@ const UploadPage = () => {
                 <div style={{ display: 'flex', gap: '10px' }}>
                   <button className="neo-btn" onClick={() => setStep(2)}>Back</button>
                   <button 
-                    className="neo-btn neo-btn-success pulse-action-btn" 
+                    className="neo-btn neo-btn-primary" 
                     disabled={placingOrder || totalPagesToPrint <= 0}
                     onClick={handlePlaceOrder}
                   >
