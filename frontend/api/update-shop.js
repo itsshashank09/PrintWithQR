@@ -16,44 +16,95 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method Not Allowed' });
   }
 
+  if (!serviceRoleKey) {
+    console.error('[update-shop] Missing SUPABASE_SERVICE_ROLE_KEY.');
+    return res.status(500).json({ error: 'Server configuration error: Service role key is missing.' });
+  }
+
   try {
-    const { shopId, newPassword, shopDetails } = req.body || {};
+    let body = req.body;
+    if (typeof body === 'string') {
+      try {
+        body = JSON.parse(body);
+      } catch (e) {
+        body = {};
+      }
+    }
+
+    const { shopId, newPassword, shopDetails } = body || {};
 
     if (!shopId) {
       return res.status(400).json({ error: 'Shop ID is required.' });
     }
 
-    if (!serviceRoleKey) {
-      return res.status(500).json({ error: 'Server configuration error: Service role key is missing.' });
+    // Require and verify Authorization Bearer token to prevent IDOR / Account Takeover
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return res.status(401).json({ error: 'Unauthorized: Valid authentication token is required.' });
     }
 
+    const token = authHeader.replace('Bearer ', '').trim();
     const adminClient = createClient(supabaseUrl, serviceRoleKey, {
       auth: { autoRefreshToken: false, persistSession: false }
     });
 
-    // 1. Update Shop Details (bypasses RLS)
-    if (shopDetails) {
-      const { error: dbUpdateErr } = await adminClient
+    const { data: { user }, error: authUserErr } = await adminClient.auth.getUser(token);
+    if (authUserErr || !user) {
+      return res.status(401).json({ error: 'Invalid or expired authentication session.' });
+    }
+
+    // Check authorization: caller must be the shop owner or a verified administrator
+    if (user.id !== shopId) {
+      const { data: callerShop } = await adminClient
         .from('shops')
-        .update(shopDetails)
-        .eq('id', shopId);
-        
-      if (dbUpdateErr) {
-        console.error('Error updating shop details in DB:', dbUpdateErr.message);
-        return res.status(400).json({ error: 'Failed to update shop details: ' + dbUpdateErr.message });
+        .select('is_admin')
+        .eq('id', user.id)
+        .maybeSingle();
+
+      if (!callerShop?.is_admin) {
+        return res.status(403).json({ error: 'Forbidden: You do not have permission to modify this shop account.' });
       }
     }
 
-    // 2. Update Password in Auth
-    if (newPassword && newPassword.trim().length > 0) {
+    // 1. Update Safe Shop Details (prevent mass assignment of is_admin, is_paid, etc.)
+    if (shopDetails && typeof shopDetails === 'object') {
+      const allowedFields = ['name', 'phone', 'address', 'printer_model', 'bw_rate', 'color_rate', 'color_enabled'];
+      const sanitizedUpdate = {};
+
+      for (const field of allowedFields) {
+        if (shopDetails[field] !== undefined) {
+          sanitizedUpdate[field] = shopDetails[field];
+        }
+      }
+
+      if (Object.keys(sanitizedUpdate).length > 0) {
+        const { error: dbUpdateErr } = await adminClient
+          .from('shops')
+          .update(sanitizedUpdate)
+          .eq('id', shopId);
+          
+        if (dbUpdateErr) {
+          console.error('[update-shop] DB update error:', dbUpdateErr.message);
+          return res.status(500).json({ error: 'Failed to update shop details.' });
+        }
+      }
+    }
+
+    // 2. Update Password in Auth if requested
+    if (newPassword && typeof newPassword === 'string') {
+      const trimmedPass = newPassword.trim();
+      if (trimmedPass.length < 6) {
+        return res.status(400).json({ error: 'New password must be at least 6 characters long.' });
+      }
+
       const { error: authUpdateErr } = await adminClient.auth.admin.updateUserById(
         shopId,
-        { password: newPassword.trim() }
+        { password: trimmedPass }
       );
 
       if (authUpdateErr) {
-        console.error('Error updating password:', authUpdateErr.message);
-        return res.status(400).json({ error: 'Failed to update password: ' + authUpdateErr.message });
+        console.error('[update-shop] Password update error:', authUpdateErr.message);
+        return res.status(500).json({ error: 'Failed to update user password.' });
       }
     }
 
@@ -62,7 +113,7 @@ export default async function handler(req, res) {
       message: 'Shop successfully updated.'
     });
   } catch (err) {
-    console.error('Update shop handler error:', err);
-    return res.status(500).json({ error: err.message || 'Server error during shop update.' });
+    console.error('[update-shop] Handler error:', err.message || err);
+    return res.status(500).json({ error: 'Server error during shop update.' });
   }
 }

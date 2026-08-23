@@ -1,4 +1,3 @@
-
 import { supabase } from '../supabaseClient';
 
 export const loadRazorpayScript = () => {
@@ -36,40 +35,39 @@ export const processSubscriptionPayment = async ({
     }
 
     // 1. Create order on server backend
-    let orderData = {};
-    try {
-      const res = await fetch(`${import.meta.env.VITE_API_URL || '/api'}/create-order`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ plan })
-      });
-      if (res.ok) {
-        orderData = await res.json();
-      } else {
-        try {
-          const errJson = await res.json();
-          if (errJson?.error) throw new Error(errJson.error);
-        } catch (e) {
-          console.warn('API error parsing:', e);
-        }
+    const res = await fetch(`${import.meta.env.VITE_API_URL || '/api'}/create-order`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ plan })
+    });
+
+    if (!res.ok) {
+      let errMsg = 'Failed to create payment order.';
+      try {
+        const errJson = await res.json();
+        if (errJson?.error) errMsg = errJson.error;
+      } catch (e) {
+        // use default errMsg
       }
-    } catch (apiErr) {
-      console.warn('Backend order creation warning (will fallback to direct checkout):', apiErr);
+      throw new Error(errMsg);
     }
 
+    const orderData = await res.json();
     const isYearly = plan === 'yearly';
-    const durationDays = isYearly ? 365 : 30;
-    const defaultAmountInPaise = isYearly ? 59900 : 9900;
-    const razorpayKey = orderData?.key || 'REDACTED_RAZORPAY_KEY_ID';
+    const razorpayKey = orderData?.key || import.meta.env.VITE_RAZORPAY_KEY_ID;
+
+    if (!razorpayKey || !orderData?.order_id) {
+      throw new Error('Could not obtain valid payment order from server.');
+    }
 
     // 2. Configure Razorpay modal options
     const options = {
       key: razorpayKey,
-      amount: orderData?.amount || defaultAmountInPaise,
-      currency: orderData?.currency || 'INR',
+      amount: orderData.amount,
+      currency: orderData.currency || 'INR',
       name: 'PrintWithQR.in',
       description: isYearly ? 'Annual Print Shop Plan (₹599/year)' : 'Monthly Print Shop Plan (₹99/month)',
-      ...(orderData?.order_id ? { order_id: orderData.order_id } : {}),
+      order_id: orderData.order_id,
       prefill: {
         contact: phone || localStorage.getItem('saved_phone') || '',
         name: name || localStorage.getItem('shopName') || ''
@@ -78,10 +76,17 @@ export const processSubscriptionPayment = async ({
         try {
           if (setLoading) setLoading(true);
 
-          // Verify signature and update backend
+          // Get auth token if user is signed in
+          const { data: { session } } = await supabase.auth.getSession();
+          const headers = { 'Content-Type': 'application/json' };
+          if (session?.access_token) {
+            headers['Authorization'] = `Bearer ${session.access_token}`;
+          }
+
+          // Verify signature and update backend securely
           const verifyRes = await fetch(`${import.meta.env.VITE_API_URL || '/api'}/verify-payment`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers,
             body: JSON.stringify({
               razorpay_order_id: paymentRes.razorpay_order_id,
               razorpay_payment_id: paymentRes.razorpay_payment_id,
@@ -93,24 +98,16 @@ export const processSubscriptionPayment = async ({
 
           const verifyData = await verifyRes.json();
 
-          // Client-side fail-safe update directly to Supabase shops table
-          const newExpiresAt = new Date(Date.now() + durationDays * 24 * 60 * 60 * 1000).toISOString();
-          if (shopId) {
-            await supabase.from('shops').update({
-              is_paid: 1,
-              subscription_status: 'active',
-              subscription_expires_at: newExpiresAt,
-              razorpay_order_id: paymentRes.razorpay_order_id,
-              razorpay_payment_id: paymentRes.razorpay_payment_id
-            }).eq('id', shopId);
+          if (!verifyRes.ok || !verifyData.success) {
+            throw new Error(verifyData.error || 'Payment verification failed on server.');
           }
 
           alert(`🎉 Payment Successful! Your ${isYearly ? 'Annual' : 'Monthly'} plan is now active.`);
-          if (onSuccess) onSuccess(newExpiresAt || verifyData?.expiresAt);
+          if (onSuccess) onSuccess(verifyData?.expiresAt);
         } catch (err) {
           console.error('[payment-util] Verification error:', err);
-          alert('Payment was processed successfully!');
-          if (onSuccess) onSuccess();
+          alert(err.message || 'Payment verification error. Please contact support.');
+          if (onError) onError(err.message);
         } finally {
           if (setLoading) setLoading(false);
         }

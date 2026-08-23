@@ -204,8 +204,8 @@ export default async function handler(req, res) {
 
     const { error: shopError } = await adminClient.from('shops').upsert(shopRecord);
     if (shopError) {
-      console.error('[register-shop] Supabase upsert error:', shopError);
-      return res.status(500).json({ error: 'Failed to save shop data. Please try again later.', details: shopError });
+      console.error('[register-shop] Supabase upsert error:', shopError.message || shopError);
+      return res.status(500).json({ error: 'Failed to save shop data. Please try again later.' });
     }
 
     await adminClient.from('registration_attempts').insert({
@@ -220,7 +220,7 @@ export default async function handler(req, res) {
 
     return res.status(200).json({ success: true, shopId: userId, message: 'Shop registered successfully. You have received 10 free prints.' });
   } catch (err) {
-    console.error('[register-shop] Error:', err);
-    return res.status(500).json({ error: err.message || 'Server error while registering shop.' });
+    console.error('[register-shop] Error:', err.message || err);
+    return res.status(500).json({ error: 'Server error while registering shop.' });
   }
 }

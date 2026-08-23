@@ -195,16 +195,16 @@ const Profile = () => {
       // 2. Update shop fields in public.shops table
       const { error: dbError } = await supabase
         .from('shops')
-        .upsert({
-          id: activeShopId,
+        .update({
           name,
           phone: cleanPhone,
           address: address && address.trim() !== '' ? address : 'Not Provided',
+          printer_model: printerModel ? printerModel.trim() : '',
           bw_rate: parseFloat(bwRate) || 0,
           color_rate: parseFloat(colorRate) || 0,
-          color_enabled: colorEnabled ? 1 : 0,
-          is_paid: 1
-        });
+          color_enabled: colorEnabled ? 1 : 0
+        })
+        .eq('id', activeShopId);
 
       if (dbError) {
         throw new Error(dbError.message || 'Failed to update shop profile.');

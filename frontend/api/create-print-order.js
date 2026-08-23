@@ -15,10 +15,19 @@ export default async function handler(req, res) {
   if (!serviceRoleKey) return res.status(500).json({ error: 'Server configuration error: missing Supabase service role key.' });
 
   try {
-    const { shopId, orders, paperSize = 'A4', duplex = false } = req.body || {};
+    let body = req.body;
+    if (typeof body === 'string') {
+      try {
+        body = JSON.parse(body);
+      } catch (e) {
+        body = {};
+      }
+    }
 
-    if (!shopId || !Array.isArray(orders) || orders.length === 0) {
-      return res.status(400).json({ error: 'shopId and at least one order item are required.' });
+    const { shopId, orders, paperSize = 'A4', duplex = false } = body || {};
+
+    if (!shopId || typeof shopId !== 'string' || !Array.isArray(orders) || orders.length === 0) {
+      return res.status(400).json({ error: 'Valid shopId and at least one order item are required.' });
     }
 
     const adminClient = getClient();
@@ -26,7 +35,7 @@ export default async function handler(req, res) {
     const { data: shop, error: shopError } = await adminClient
       .from('shops')
       .select('free_prints_allowed, free_prints_used, subscription_status, is_paid, subscription_expires_at, bw_rate, color_rate')
-      .eq('id', shopId)
+      .eq('id', shopId.trim())
       .single();
 
     if (shopError || !shop) {
@@ -41,20 +50,32 @@ export default async function handler(req, res) {
     const freeRemaining = Math.max(0, freeAllowed - freeUsed);
 
     let totalPagesRequested = 0;
-    const sanitizedOrders = orders.map((item) => {
-      const pages = Number(item.pages_to_print || 0);
+    const sanitizedOrders = [];
+
+    for (const item of orders) {
+      if (!item || typeof item !== 'object') continue;
+      const rawPages = Math.floor(Number(item.pages_to_print || 0));
+      if (rawPages <= 0 || rawPages > 2000) {
+        return res.status(400).json({ error: 'Invalid page count requested for print order.' });
+      }
+
       const printType = item.print_type === 'color' ? 'color' : 'bw';
-      totalPagesRequested += pages;
-      return {
-        file_path: item.file_path,
-        file_name: item.file_name,
-        pages_to_print: pages,
+      totalPagesRequested += rawPages;
+
+      sanitizedOrders.push({
+        file_path: String(item.file_path || '').trim(),
+        file_name: String(item.file_name || 'Document').slice(0, 150),
+        pages_to_print: rawPages,
         print_type: printType,
-        paper_size: item.paper_size || paperSize,
+        paper_size: ['A4', 'Letter', '16:9'].includes(item.paper_size) ? item.paper_size : paperSize,
         duplex: item.duplex ? 1 : 0,
-        total_amount: pages * (printType === 'color' ? Number(shop.color_rate || 10) : Number(shop.bw_rate || 5))
-      };
-    });
+        total_amount: rawPages * (printType === 'color' ? Number(shop.color_rate || 10) : Number(shop.bw_rate || 5))
+      });
+    }
+
+    if (sanitizedOrders.length === 0) {
+      return res.status(400).json({ error: 'No valid order items provided.' });
+    }
 
     if (!hasActiveSubscription && shop.subscription_status !== 'free') {
       return res.status(403).json({ error: 'Your shop subscription has expired or is inactive. Please subscribe to continue printing.' });
@@ -94,6 +115,7 @@ export default async function handler(req, res) {
 
     const { data: insertedOrders, error: insertError } = await adminClient.from('orders').insert(insertPayload).select();
     if (insertError) {
+      console.error('[create-print-order] Insert error:', insertError.message || insertError);
       return res.status(500).json({ error: 'Failed to create print order. Please try again.' });
     }
 
@@ -103,7 +125,7 @@ export default async function handler(req, res) {
 
     return res.status(200).json({ success: true, orderIds: insertedOrders.map((order) => order.id) });
   } catch (err) {
-    console.error('[create-print-order] Error:', err);
-    return res.status(500).json({ error: err.message || 'Server error while creating print order.' });
+    console.error('[create-print-order] Error:', err.message || err);
+    return res.status(500).json({ error: 'Server error while creating print order.' });
   }
 }

@@ -98,11 +98,24 @@ const Admin = () => {
       const u = adminUsername.trim();
       const p = adminPassword.trim();
 
-      // Verify master credentials: Username: Shashank, Password: Shashu(079)
-      if (
-        (u.toLowerCase() === 'shashank' || u === '9483030043' || u.toLowerCase() === 'shashank@gmail.com') &&
-        p === 'Shashu(079)'
-      ) {
+      // Authenticate via Supabase Auth credentials and verify admin role in database
+      const email = u.includes('@') ? u : `${u.replace(/\D/g, '')}@gmail.com`;
+      const { data: authData, error: authErr } = await supabase.auth.signInWithPassword({
+        email,
+        password: p
+      });
+
+      if (authErr || !authData?.user) {
+        throw new Error(authErr?.message || 'Invalid Admin Credentials.');
+      }
+
+      const { data: currentShop } = await supabase
+        .from('shops')
+        .select('is_admin')
+        .eq('id', authData.user.id)
+        .single();
+
+      if (currentShop && currentShop.is_admin) {
         sessionStorage.setItem('adminSession', 'true');
         localStorage.setItem('adminSession', 'true');
         localStorage.setItem('isAdmin', 'true');
@@ -111,31 +124,7 @@ const Admin = () => {
         return;
       }
 
-      // Fallback: Check Supabase Auth credentials for admin flag
-      const email = u.includes('@') ? u : `${u.replace(/\D/g, '')}@gmail.com`;
-      const { data: authData, error: authErr } = await supabase.auth.signInWithPassword({
-        email,
-        password: p
-      });
-
-      if (!authErr && authData?.user) {
-        const { data: currentShop } = await supabase
-          .from('shops')
-          .select('is_admin')
-          .eq('id', authData.user.id)
-          .single();
-
-        if (currentShop && currentShop.is_admin) {
-          sessionStorage.setItem('adminSession', 'true');
-          localStorage.setItem('adminSession', 'true');
-          localStorage.setItem('isAdmin', 'true');
-          setIsAdminUser(true);
-          fetchShops();
-          return;
-        }
-      }
-
-      throw new Error('Invalid Super Admin Username or Password.');
+      throw new Error('Access Denied: This account does not have administrator privileges.');
     } catch (err) {
       setAdminLoginError(err.message || 'Invalid Admin Credentials.');
     } finally {
@@ -266,9 +255,15 @@ const Admin = () => {
         color_rate: parseFloat(editingShop.color_rate) || 10.0
       };
 
+      const { data: { session } } = await supabase.auth.getSession();
+      const headers = { 'Content-Type': 'application/json' };
+      if (session?.access_token) {
+        headers['Authorization'] = `Bearer ${session.access_token}`;
+      }
+
       const passRes = await fetch('/api/update-shop', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers,
         body: JSON.stringify({ 
           shopId: editingShop.id, 
           shopDetails: shopDetailsToUpdate,
@@ -304,10 +299,16 @@ const Admin = () => {
     try {
       setLoading(true);
 
+      const { data: { session } } = await supabase.auth.getSession();
+      const headers = { 'Content-Type': 'application/json' };
+      if (session?.access_token) {
+        headers['Authorization'] = `Bearer ${session.access_token}`;
+      }
+
       // 1. Call serverless delete-shop endpoint to purge orders, shop, and auth user
       const response = await fetch('/api/delete-shop', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers,
         body: JSON.stringify({ shopId: shopIdToDelete })
       });
 
