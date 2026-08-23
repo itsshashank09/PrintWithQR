@@ -1,0 +1,975 @@
+/* ==========================================================================
+   RECTANGLE BUTTONS & AUTHORED CTA FAMILY
+   Complete DOM + CSS implementations for 13 button variants
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   1. Floating Dots CTA (variant="floating-dots-cta")
+   -------------------------------------------------------------------------- */
+.btn-floating-dots {
+  cursor: pointer;
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  transition: transform 0.25s var(--ease-out), box-shadow 0.25s var(--ease-out), filter 0.25s var(--ease-out);
+  background: radial-gradient(65.28% 65.28% at 50% 100%, rgba(34, 211, 238, 0.8) 0%, rgba(34, 211, 238, 0) 100%), linear-gradient(0deg, #5B7CFA, #4364EE);
+  border-radius: var(--radius-md, 14px);
+  border: none;
+  outline: none;
+  padding: 12px 26px;
+  min-height: 48px;
+  min-width: 130px;
+  box-shadow: 0 4px 18px rgba(91, 124, 250, 0.42), var(--shadow-extrude-sm);
+  color: #FFFFFF !important;
+  font-family: inherit;
+  font-weight: 600;
+  text-decoration: none;
+  user-select: none;
+}
+
+.btn-floating-dots::before,
+.btn-floating-dots::after {
+  content: "";
+  position: absolute;
+  transition: all 0.4s ease-in-out;
+  pointer-events: none;
+}
+
+.btn-floating-dots::before {
+  inset: 1px;
+  background: linear-gradient(177.95deg, rgba(255, 255, 255, 0.35) 0%, rgba(255, 255, 255, 0) 100%);
+  border-radius: calc(var(--radius-md, 14px) - 1px);
+  z-index: 0;
+}
+
+.btn-floating-dots::after {
+  inset: 2px;
+  background: radial-gradient(65.28% 65.28% at 50% 100%, rgba(34, 211, 238, 0.8) 0%, rgba(34, 211, 238, 0) 100%), linear-gradient(0deg, #5B7CFA, #4364EE);
+  border-radius: calc(var(--radius-md, 14px) - 2px);
+  z-index: 0;
+}
+
+.btn-floating-dots:hover {
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: 0 8px 28px rgba(91, 124, 250, 0.65), 0 0 16px rgba(34, 211, 238, 0.4), var(--shadow-extrude);
+}
+
+.btn-floating-dots:active {
+  transform: translateY(1px) scale(0.97);
+  box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.35);
+}
+
+.btn-floating-dots .points_wrapper {
+  overflow: hidden;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+}
+
+.btn-floating-dots .points_wrapper .point {
+  bottom: -10px;
+  position: absolute;
+  animation: floating-points 2.2s infinite ease-in-out;
+  pointer-events: none;
+  width: 3px;
+  height: 3px;
+  background-color: #ffffff;
+  border-radius: 9999px;
+  box-shadow: 0 0 6px rgba(255, 255, 255, 0.8);
+}
+
+@keyframes floating-points {
+  0% { transform: translateY(0); opacity: 1; }
+  85% { opacity: 0.3; }
+  100% { transform: translateY(-55px); opacity: 0; }
+}
+
+.btn-floating-dots .point:nth-child(1) { left: 12%; animation-duration: 2.35s; animation-delay: 0.2s; }
+.btn-floating-dots .point:nth-child(2) { left: 28%; animation-duration: 2.5s; animation-delay: 0.5s; }
+.btn-floating-dots .point:nth-child(3) { left: 22%; animation-duration: 2.2s; animation-delay: 0.1s; }
+.btn-floating-dots .point:nth-child(4) { left: 42%; animation-duration: 2.05s; }
+.btn-floating-dots .point:nth-child(5) { left: 52%; animation-duration: 1.9s; }
+.btn-floating-dots .point:nth-child(6) { left: 74%; animation-duration: 1.5s; animation-delay: 1.2s; }
+.btn-floating-dots .point:nth-child(7) { left: 86%; animation-duration: 2.2s; animation-delay: 0.2s; }
+.btn-floating-dots .point:nth-child(8) { left: 62%; animation-duration: 2.25s; animation-delay: 0.3s; }
+.btn-floating-dots .point:nth-child(9) { left: 94%; animation-duration: 2.6s; animation-delay: 0.1s; }
+.btn-floating-dots .point:nth-child(10) { left: 68%; animation-duration: 2.5s; animation-delay: 0.4s; }
+
+.btn-floating-dots .inner {
+  z-index: 2;
+  gap: 10px;
+  position: relative;
+  width: 100%;
+  color: #FFFFFF;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.98rem;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.btn-floating-dots .inner svg.icon {
+  width: 18px;
+  height: 18px;
+  transition: transform 0.3s var(--ease-out);
+  stroke: currentColor;
+  fill: none;
+}
+
+.btn-floating-dots:hover .inner svg.icon {
+  transform: translateX(4px);
+}
+
+.btn-floating-dots:hover .inner svg.icon path {
+  animation: dash 0.8s linear forwards;
+}
+
+@keyframes dash {
+  0% { stroke-dasharray: 0, 20; stroke-dashoffset: 0; }
+  50% { stroke-dasharray: 10, 10; stroke-dashoffset: -5; }
+  100% { stroke-dasharray: 20, 0; stroke-dashoffset: -10; }
+}
+
+/* --------------------------------------------------------------------------
+   2. Launch Button (variant="launch-button")
+   -------------------------------------------------------------------------- */
+.btn-launch-group {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: transparent;
+  padding: 0;
+  cursor: pointer;
+  outline: none;
+  text-decoration: none;
+  font-family: inherit;
+}
+
+.btn-launch-blur {
+  position: absolute;
+  inset: -3px;
+  border-radius: var(--radius-md, 16px);
+  background: rgba(245, 158, 11, 0.45);
+  opacity: 0.45;
+  filter: blur(10px);
+  transition: opacity 0.4s var(--ease-out), transform 0.4s var(--ease-out);
+}
+
+.btn-launch-group:hover .btn-launch-blur {
+  opacity: 0.85;
+  transform: scale(1.04);
+}
+
+.btn-launch-surface {
+  position: relative;
+  z-index: 1;
+  background: linear-gradient(180deg, #FDE68A 0%, #F59E0B 55%, #D97706 100%);
+  color: #451A03;
+  border-radius: var(--radius-md, 16px);
+  padding: 12px 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  font-weight: 700;
+  font-size: 0.98rem;
+  box-shadow: 0 0 0 1px rgba(251, 191, 36, 0.6), 0 4px 0 #92400E, 0 10px 18px -3px rgba(0, 0, 0, 0.35);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  user-select: none;
+}
+
+.btn-launch-group:hover .btn-launch-surface {
+  transform: translateY(-2px);
+  box-shadow: 0 0 0 1px rgba(251, 191, 36, 0.8), 0 6px 0 #92400E, 0 14px 22px -3px rgba(245, 158, 11, 0.4);
+}
+
+.btn-launch-group:active .btn-launch-surface {
+  transform: translateY(3px);
+  box-shadow: 0 0 0 1px rgba(251, 191, 36, 0.6), 0 1px 0 #92400E, 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.btn-launch-icon {
+  fill: rgba(69, 26, 3, 0.2);
+  stroke-width: 2;
+  transition: transform 0.2s ease;
+}
+
+.btn-launch-group:hover .btn-launch-icon {
+  transform: scale(1.15);
+}
+
+/* --------------------------------------------------------------------------
+   3. Gradient Beam CTA (variant="gradient-beam-cta")
+   -------------------------------------------------------------------------- */
+.btn-gradient-beam {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 14px 34px;
+  border-radius: 9999px;
+  border: none;
+  background: transparent;
+  color: #FFFFFF;
+  font-size: 0.95rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  cursor: pointer;
+  outline: none;
+  overflow: hidden;
+  text-decoration: none;
+  transition: transform 0.4s var(--ease-out), box-shadow 0.4s var(--ease-out);
+  box-shadow: 0 0 20px -5px rgba(91, 124, 250, 0.35);
+  font-family: inherit;
+}
+
+.btn-gradient-beam:hover {
+  transform: scale(1.025);
+  box-shadow: 0 0 35px -5px rgba(91, 124, 250, 0.7);
+}
+
+.btn-gradient-beam:active {
+  transform: scale(0.97);
+}
+
+.btn-beam-spin-container {
+  position: absolute;
+  inset: 0;
+  border-radius: 9999px;
+  overflow: hidden;
+  padding: 1.5px;
+  z-index: 0;
+}
+
+.btn-beam-spin {
+  position: absolute;
+  inset: -120%;
+  background: conic-gradient(from 0deg, transparent 0 280deg, #5B7CFA 330deg, #60A5FA 360deg);
+  animation: beam-spin 3s linear infinite;
+}
+
+@keyframes beam-spin {
+  to { transform: rotate(360deg); }
+}
+
+.btn-beam-mask {
+  position: absolute;
+  inset: 1.5px;
+  border-radius: 9999px;
+  background: #0D1117;
+}
+
+.btn-beam-inner {
+  position: absolute;
+  inset: 2px;
+  border-radius: 9999px;
+  background: #111827;
+  overflow: hidden;
+  z-index: 1;
+}
+
+.btn-beam-dots {
+  position: absolute;
+  inset: 0;
+  opacity: 0.25;
+  mix-blend-mode: overlay;
+  background-image: radial-gradient(rgba(255, 255, 255, 0.7) 1px, transparent 1px);
+  background-size: 10px 10px;
+  animation: dots-move 7s linear infinite;
+}
+
+@keyframes dots-move {
+  0% { background-position: 0 0; }
+  100% { background-position: 20px 20px; }
+}
+
+.btn-beam-glow {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 70%;
+  height: 60%;
+  background: rgba(91, 124, 250, 0.15);
+  filter: blur(14px);
+  border-radius: 9999px;
+  transition: background 0.4s ease;
+}
+
+.btn-gradient-beam:hover .btn-beam-glow {
+  background: rgba(91, 124, 250, 0.4);
+}
+
+.btn-beam-content {
+  position: relative;
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: #FFFFFF;
+}
+
+.btn-beam-icon {
+  transition: transform 0.25s ease;
+}
+
+.btn-gradient-beam:hover .btn-beam-icon {
+  transform: translateX(4px);
+}
+
+/* --------------------------------------------------------------------------
+   4. Spinning Border Button (variant="spinning-border-button")
+   -------------------------------------------------------------------------- */
+.btn-spinning-border {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  border: none;
+  background: transparent;
+  padding: 1px;
+  cursor: pointer;
+  outline: none;
+  overflow: hidden;
+  text-decoration: none;
+  transition: transform 0.3s var(--ease-out), box-shadow 0.3s var(--ease-out);
+  font-family: inherit;
+}
+
+.btn-spinning-border:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 0 25px rgba(91, 124, 250, 0.3);
+}
+
+.btn-spin-beam {
+  position: absolute;
+  inset: -100%;
+  background: conic-gradient(from 90deg at 50% 50%, transparent 0%, transparent 75%, #5B7CFA 100%);
+  opacity: 0;
+  animation: beam-spin 3s linear infinite;
+  transition: opacity 0.3s ease;
+}
+
+.btn-spinning-border:hover .btn-spin-beam {
+  opacity: 1;
+}
+
+.btn-spin-static {
+  position: absolute;
+  inset: 0;
+  border-radius: 9999px;
+  background: rgba(255, 255, 255, 0.12);
+  transition: opacity 0.3s ease;
+}
+
+.btn-spinning-border:hover .btn-spin-static {
+  opacity: 0;
+}
+
+.btn-spin-surface {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 22px;
+  border-radius: 9999px;
+  background: linear-gradient(180deg, #1E293B 0%, #0F172A 100%);
+  color: #E2E8F0;
+  font-size: 0.88rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.25);
+  transition: color 0.3s ease;
+}
+
+.btn-spinning-border:hover .btn-spin-surface {
+  color: #FFFFFF;
+}
+
+.btn-spin-icon {
+  transition: transform 0.25s ease;
+}
+
+.btn-spinning-border:hover .btn-spin-icon {
+  transform: translateX(3px);
+}
+
+/* --------------------------------------------------------------------------
+   5. Gradient CTA (variant="gradient-cta")
+   -------------------------------------------------------------------------- */
+.btn-gradient-cta {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px 28px;
+  border-radius: 9999px;
+  border: none;
+  outline: none;
+  background: linear-gradient(135deg, #FFEBB1 0%, #FFC438 100%);
+  color: #78350F !important;
+  font-weight: 700;
+  font-size: 0.95rem;
+  cursor: pointer;
+  overflow: hidden;
+  text-decoration: none;
+  box-shadow: 0 14px 30px -10px rgba(245, 158, 11, 0.8), inset 0 4px 6px rgba(254, 240, 138, 1), inset 0 -4px 6px rgba(217, 119, 6, 0.8);
+  transition: transform 0.25s var(--ease-out), box-shadow 0.25s var(--ease-out);
+  font-family: inherit;
+}
+
+.btn-gradient-cta:hover {
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: 0 18px 36px -8px rgba(245, 158, 11, 0.95), inset 0 4px 6px rgba(254, 240, 138, 1), inset 0 -4px 6px rgba(217, 119, 6, 0.8);
+}
+
+.btn-gradient-cta:active {
+  transform: translateY(1px) scale(0.98);
+}
+
+.btn-gradient-cta-sweep {
+  position: absolute;
+  inset: 0;
+  background: rgba(255, 255, 255, 0.28);
+  transform: translateY(100%);
+  transition: transform 0.3s ease;
+  pointer-events: none;
+}
+
+.btn-gradient-cta:hover .btn-gradient-cta-sweep {
+  transform: translateY(0);
+}
+
+.btn-gradient-cta-content {
+  position: relative;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* --------------------------------------------------------------------------
+   6. Lumen CTA & Ghost (variant="lumen-cta" | "lumen-cta-ghost")
+   -------------------------------------------------------------------------- */
+.lumen-cta__button {
+  height: 46px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 0 28px;
+  border-radius: 999px;
+  border: 0;
+  outline: 1px solid rgba(255, 255, 255, 0.15);
+  text-decoration: none;
+  font-family: inherit;
+  font-size: 0.95rem;
+  font-weight: 600;
+  line-height: 1;
+  color: #FFFFFF !important;
+  white-space: nowrap;
+  position: relative;
+  cursor: pointer;
+  appearance: none;
+  background: linear-gradient(90deg, #050014 0%, #0d0029 20%, #1e0066 40%, #2f00ab 60%, #5227c0 75%, #9470d9 100%);
+  box-shadow: 0 4px 22px rgba(70, 20, 190, 0.38), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  transition: filter 0.25s ease, transform 0.25s var(--ease-out), box-shadow 0.25s ease;
+}
+
+.lumen-cta__button:hover:not(:disabled) {
+  filter: brightness(1.15);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 28px rgba(91, 124, 250, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.3);
+}
+
+.lumen-cta__button:active:not(:disabled) {
+  transform: scale(0.97);
+}
+
+.lumen-cta__button--ghost {
+  background: rgba(255, 255, 255, 0.04);
+  outline-color: rgba(255, 255, 255, 0.22);
+  box-shadow: none;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  color: var(--text-primary) !important;
+}
+
+.lumen-cta__button--ghost:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.12);
+  outline-color: var(--accent);
+  color: var(--accent) !important;
+}
+
+.lumen-cta__ring {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  border: 1.5px solid rgba(255, 255, 255, 0.95);
+  box-shadow: 0 0 6px rgba(255, 255, 255, 0.8);
+  flex: 0 0 auto;
+}
+
+/* --------------------------------------------------------------------------
+   7. Glassmorphism CTA (variant="glassmorphism-cta")
+   -------------------------------------------------------------------------- */
+.btn-glassmorphism {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  outline: none;
+  text-decoration: none;
+  overflow: hidden;
+  transition: transform 0.3s var(--ease-out), box-shadow 0.3s var(--ease-out);
+  box-shadow: 0 8px 30px rgba(91, 124, 250, 0.25);
+  font-family: inherit;
+}
+
+.btn-glassmorphism:hover {
+  transform: scale(1.03);
+  box-shadow: 0 0 35px 6px rgba(91, 124, 250, 0.45);
+}
+
+.btn-glass-shimmer-wrap {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  border-radius: 9999px;
+}
+
+.btn-glass-shimmer {
+  position: absolute;
+  inset: -150%;
+  background: conic-gradient(from 225deg, transparent 0, rgba(255, 255, 255, 0.7) 90deg, transparent 90deg);
+  animation: beam-spin 4s linear infinite;
+}
+
+.btn-glass-blur-bg {
+  position: absolute;
+  inset: 1px;
+  border-radius: 9999px;
+  background: rgba(255, 255, 255, 0.06);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.btn-glass-content {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 24px;
+  border-radius: 9999px;
+  background: rgba(15, 23, 42, 0.85);
+  backdrop-filter: blur(8px);
+  color: #FFFFFF;
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+.btn-glass-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.12);
+  color: #FFFFFF;
+}
+
+/* --------------------------------------------------------------------------
+   8. Dot Border Button (variant="dot-border-button")
+   -------------------------------------------------------------------------- */
+.btn-dot-border-wrapper {
+  --dot-size: 7px;
+  --line-weight: 1px;
+  --animation-speed: 0.35s;
+  --dot-color: var(--accent, #5B7CFA);
+  --line-color: rgba(91, 124, 250, 0.6);
+  --grid-color: rgba(91, 124, 250, 0.15);
+  position: relative;
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  padding: 0.7rem 0.9rem;
+  background-color: transparent;
+  user-select: none;
+}
+
+.btn-dot-border-wrapper::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background-image: repeating-linear-gradient(45deg, var(--grid-color) 0 1px, transparent 2px 5px);
+  opacity: 0;
+  z-index: 0;
+}
+
+.btn-dot-border-wrapper:hover::after {
+  animation: opacity-anim calc(var(--animation-speed) * 4) ease-in-out forwards;
+}
+
+@keyframes opacity-anim {
+  80% { opacity: 0; }
+  100% { opacity: 1; }
+}
+
+.btn-dot-border-core {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  background-color: var(--bg);
+  border: 1px solid var(--grid-color);
+  color: var(--text-primary);
+  font-family: inherit;
+  font-size: 0.95rem;
+  font-weight: 600;
+  border-radius: 8px;
+  cursor: pointer;
+  outline: none;
+  box-shadow: var(--shadow-extrude-sm);
+  transition: transform 0.2s ease, background-color 0.2s ease, color 0.2s ease;
+}
+
+.btn-dot-border-wrapper:hover .btn-dot-border-core {
+  background-color: var(--accent);
+  color: #FFFFFF;
+  transform: scale(1.03);
+}
+
+.btn-dot-border-wrapper .dot {
+  position: absolute;
+  width: var(--dot-size);
+  aspect-ratio: 1;
+  border-radius: 2px;
+  background-color: var(--dot-color);
+  transition: all 0.3s ease-in-out;
+  opacity: 0;
+}
+
+.btn-dot-border-wrapper:hover .dot.top.left {
+  top: calc(var(--dot-size) * -0.5);
+  left: calc(var(--dot-size) * -0.5);
+  opacity: 1;
+}
+
+.btn-dot-border-wrapper:hover .dot.top.right {
+  top: calc(var(--dot-size) * -0.5);
+  right: calc(var(--dot-size) * -0.5);
+  opacity: 1;
+}
+
+.btn-dot-border-wrapper:hover .dot.bottom.right {
+  bottom: calc(var(--dot-size) * -0.5);
+  right: calc(var(--dot-size) * -0.5);
+  opacity: 1;
+}
+
+.btn-dot-border-wrapper:hover .dot.bottom.left {
+  bottom: calc(var(--dot-size) * -0.5);
+  left: calc(var(--dot-size) * -0.5);
+  opacity: 1;
+}
+
+.btn-dot-border-wrapper .line {
+  position: absolute;
+  transition: all 0.3s ease-in-out;
+}
+
+.btn-dot-border-wrapper .line.horizontal {
+  height: var(--line-weight);
+  width: 100%;
+  background-image: repeating-linear-gradient(90deg, transparent 0 calc(var(--line-weight) * 2), var(--line-color) calc(var(--line-weight) * 2) calc(var(--line-weight) * 4));
+}
+
+.btn-dot-border-wrapper .line.vertical {
+  width: var(--line-weight);
+  height: 100%;
+  background-image: repeating-linear-gradient(0deg, transparent 0 calc(var(--line-weight) * 2), var(--line-color) calc(var(--line-weight) * 2) calc(var(--line-weight) * 4));
+}
+
+.btn-dot-border-wrapper .line.top { top: calc(var(--line-weight) * -0.5); left: 0; }
+.btn-dot-border-wrapper .line.bottom { bottom: calc(var(--line-weight) * -0.5); left: 0; }
+.btn-dot-border-wrapper .line.left { left: calc(var(--line-weight) * -0.5); top: 0; }
+.btn-dot-border-wrapper .line.right { right: calc(var(--line-weight) * -0.5); top: 0; }
+
+/* --------------------------------------------------------------------------
+   9. Sliding Text CTA (variant="sliding-text-cta")
+   -------------------------------------------------------------------------- */
+.btn-sliding-text {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 140px;
+  padding: 12px 24px;
+  border-radius: 9999px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: #1E293B;
+  color: #94A3B8;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  outline: none;
+  overflow: hidden;
+  text-decoration: none;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
+  transition: transform 0.4s var(--ease-out), color 0.3s ease, border-color 0.3s ease;
+  font-family: inherit;
+}
+
+.btn-sliding-text:hover {
+  transform: translateY(-2px);
+  color: #FFFFFF;
+  border-color: rgba(255, 255, 255, 0.35);
+}
+
+.btn-sliding-text-main {
+  position: relative;
+  z-index: 2;
+  transition: transform 0.35s ease-out, opacity 0.35s ease-out, filter 0.35s ease-out;
+}
+
+.btn-sliding-text:hover .btn-sliding-text-main {
+  transform: translateY(24px);
+  opacity: 0;
+  filter: blur(4px);
+}
+
+.btn-sliding-text-clone {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transform: translateY(-24px);
+  opacity: 0;
+  filter: blur(4px);
+  transition: transform 0.35s ease-in-out, opacity 0.35s ease-in-out, filter 0.35s ease-in-out;
+  color: #FFFFFF;
+}
+
+.btn-sliding-text:hover .btn-sliding-text-clone {
+  transform: translateY(0);
+  opacity: 1;
+  filter: blur(0);
+}
+
+.btn-sliding-underline {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  height: 2px;
+  width: 70%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.8), transparent);
+  border-radius: 9999px;
+  filter: blur(1px);
+  opacity: 0.3;
+  transition: opacity 0.4s ease;
+}
+
+.btn-sliding-text:hover .btn-sliding-underline {
+  opacity: 1;
+}
+
+.btn-sliding-gradient {
+  position: absolute;
+  inset: 0;
+  border-radius: 9999px;
+  background: linear-gradient(0deg, rgba(255, 255, 255, 0.12), transparent);
+  opacity: 0;
+  transition: opacity 0.4s ease;
+  pointer-events: none;
+}
+
+.btn-sliding-text:hover .btn-sliding-gradient {
+  opacity: 1;
+}
+
+/* --------------------------------------------------------------------------
+   10. Generate Button (variant="generate-button")
+   -------------------------------------------------------------------------- */
+.btn-generate-wrapper {
+  position: relative;
+  display: inline-block;
+}
+
+.btn-generate-core {
+  --border-radius: var(--radius-md, 14px);
+  --transition: 0.3s;
+  user-select: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 26px;
+  background-color: var(--bg);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: var(--border-radius);
+  box-shadow: var(--shadow-extrude);
+  cursor: pointer;
+  outline: none;
+  font-family: inherit;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  transition: box-shadow var(--transition), border var(--transition), background-color var(--transition), transform var(--transition);
+}
+
+.btn-generate-core:hover {
+  border-color: var(--accent);
+  transform: translateY(-2px);
+  box-shadow: 0 0 16px rgba(91, 124, 250, 0.35), var(--shadow-extrude);
+}
+
+.btn-generate-core:active {
+  transform: scale(0.97);
+  box-shadow: var(--shadow-inset);
+}
+
+.btn-generate-svg {
+  fill: var(--accent);
+  color: var(--accent);
+  animation: flicker 2s linear infinite;
+}
+
+@keyframes flicker {
+  50% { opacity: 0.4; }
+}
+
+.btn-generate-txt {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.btn-generate-core .btn-letter {
+  display: inline-block;
+  animation: letter-anim 2s ease-in-out infinite;
+}
+
+@keyframes letter-anim {
+  50% {
+    text-shadow: 0 0 4px rgba(91, 124, 250, 0.8);
+    color: var(--accent);
+  }
+}
+
+/* --------------------------------------------------------------------------
+   11. Section Button / Dark Glass Button (variant="dark-pill")
+   -------------------------------------------------------------------------- */
+.section-button {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 48px;
+  padding: 0 28px;
+  overflow: hidden;
+  border: 0;
+  border-radius: 32px;
+  color: rgba(255, 255, 255, 0.85);
+  background: transparent;
+  font-size: 0.95rem;
+  font-weight: 600;
+  line-height: 1.4;
+  cursor: pointer;
+  outline: none;
+  text-decoration: none;
+  font-family: inherit;
+  user-select: none;
+}
+
+.section-button::before,
+.section-button::after {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  content: "";
+}
+
+.section-button::before {
+  background: rgba(23, 23, 23, 0.7);
+  box-shadow: inset 2px 4px 16px rgba(255, 255, 255, 0.08);
+  -webkit-backdrop-filter: blur(50px);
+  backdrop-filter: blur(50px);
+}
+
+.section-button::after {
+  z-index: 2;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  opacity: 0.35;
+  pointer-events: none;
+  -webkit-mask-image: linear-gradient(170deg, #000, transparent 50%);
+  mask-image: linear-gradient(170deg, #000, transparent 50%);
+}
+
+.section-button__title {
+  position: relative;
+  z-index: 4;
+}
+
+.section-button__circle {
+  position: absolute;
+  z-index: 3;
+  top: calc(50% - 100px);
+  left: calc(50% - 100px);
+  width: 200px;
+  height: 200px;
+  pointer-events: none;
+}
+
+.section-button__circle::before {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: conic-gradient(from 180deg, rgba(255, 255, 255, 0.02) 180deg, rgba(91, 124, 250, 0.3) 360deg);
+  filter: blur(15px);
+  animation: section-button-circle 3.6s linear infinite;
+  content: "";
+}
+
+@keyframes section-button-circle {
+  0% { transform: translate(0) rotate(0); }
+  25% { transform: translateX(-30px) rotate(90deg); }
+  50% { transform: translate(0) rotate(180deg); }
+  75% { transform: translateX(30px) rotate(270deg); }
+  100% { transform: translate(0) rotate(360deg); }
+}
+
+.section-button:hover {
+  transform: translateY(-2px);
+  color: #FFFFFF;
+}
+
+.section-button:active {
+  transform: scale(0.97);
+}

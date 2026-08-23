@@ -5,6 +5,13 @@ import {
   ChevronLeft, ChevronRight, CheckCircle, Landmark, RefreshCw, ArrowRight
 } from 'lucide-react';
 import { supabase } from '../supabaseClient';
+import { 
+  FloatingDotsButton, 
+  LaunchButton, 
+  LumenButton, 
+  DotBorderButton, 
+  GradientBeamButton 
+} from '../components/RectangleButtons';
 
 // Helper to get pdfjsLib dynamically from window
 const getPdfjs = () => {
@@ -535,15 +542,14 @@ const UploadPage = () => {
             <div className="step-enter">
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '5px' }}>
                 <h3 style={{ margin: 0 }}>File Upload</h3>
-                <button 
-                  className={`neo-btn ${files.length > 0 ? 'neo-btn-cta pulse-cta' : ''}`}
-                  disabled={files.length === 0}
-                  onClick={() => { setActiveFileIndex(0); setPreviewPage(1); setStep(2); }}
-                  style={{ padding: '10px 20px', fontSize: '0.92rem' }}
-                >
-                  <span>Next: Preview</span>
-                  <span className="btn-arrow-move"><ArrowRight size={16} /></span>
-                </button>
+                {files.length > 0 && (
+                  <FloatingDotsButton 
+                    onClick={() => { setActiveFileIndex(0); setPreviewPage(1); setStep(2); }}
+                    style={{ padding: '8px 18px', fontSize: '0.88rem', minHeight: '40px' }}
+                  >
+                    Next: Preview
+                  </FloatingDotsButton>
+                )}
               </div>
               <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '20px' }}>PDF, PNG, JPG, JPEG supported (Max 100MB per file). Select multiple files at once.</p>
               
@@ -605,14 +611,12 @@ const UploadPage = () => {
 
                   {/* Prominent Full-Width Bottom Action Trigger */}
                   <div style={{ marginTop: '20px' }}>
-                    <button 
-                      className="neo-btn neo-btn-cta pulse-cta" 
-                      style={{ width: '100%', padding: '15px', fontSize: '1rem', borderRadius: '14px', justifyContent: 'center' }}
+                    <FloatingDotsButton 
+                      style={{ width: '100%', padding: '14px', fontSize: '1rem', justifyContent: 'center' }}
                       onClick={() => { setActiveFileIndex(0); setPreviewPage(1); setStep(2); }}
                     >
-                      <span>Proceed to Preview ({files.length} file{files.length > 1 ? 's' : ''})</span>
-                      <span className="btn-arrow-move"><ArrowRight size={18} /></span>
-                    </button>
+                      Proceed to Preview ({files.length} file{files.length > 1 ? 's' : ''})
+                    </FloatingDotsButton>
                   </div>
                 </div>
               )}
@@ -664,16 +668,14 @@ const UploadPage = () => {
                     </div>
                   )}
                 </div>
-                <div style={{ display: 'flex', gap: '10px' }}>
+                <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
                   <button className="neo-btn" onClick={() => setStep(1)}>Back</button>
-                  <button
-                    className="neo-btn neo-btn-cta pulse-cta"
+                  <FloatingDotsButton
                     onClick={() => setStep(3)}
-                    style={{ padding: '10px 20px', fontSize: '0.92rem' }}
+                    style={{ padding: '10px 22px', fontSize: '0.92rem' }}
                   >
-                    <span>Next: Options</span>
-                    <span className="btn-arrow-move"><ArrowRight size={16} /></span>
-                  </button>
+                    Next: Options
+                  </FloatingDotsButton>
                 </div>
               </div>
 
@@ -857,15 +859,14 @@ const UploadPage = () => {
 
               {/* Prominent Full-Width Bottom Checkout Button */}
               <div style={{ marginTop: '10px' }}>
-                <button 
-                  className="neo-btn neo-btn-cta pulse-cta" 
+                <LaunchButton 
                   style={{ width: '100%', padding: '16px', fontSize: '1.05rem', borderRadius: '16px', justifyContent: 'center' }}
                   disabled={placingOrder || totalPagesToPrint <= 0}
                   onClick={handlePlaceOrder}
+                  icon={<Printer size={20} className="btn-printer-pulse" />}
                 >
-                  <span className="btn-printer-pulse"><Printer size={20} /></span>
-                  <span>{placingOrder ? `Uploading ${files.length} file(s)...` : `Confirm & Send to Printer (₹${calculateTotal()})`}</span>
-                </button>
+                  {placingOrder ? `Uploading ${files.length} file(s)...` : `Confirm & Send to Printer (₹${calculateTotal()})`}
+                </LaunchButton>
               </div>
               
             </div>

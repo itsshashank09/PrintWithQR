@@ -3,6 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { User, Phone, MapPin, Printer, Lock, Landmark, AlertCircle, ArrowRight, ArrowLeft, Eye, EyeOff, CheckCircle } from 'lucide-react';
 import { supabase } from '../supabaseClient';
 import { getDeviceFingerprint } from '../utils/deviceFingerprint';
+import { FloatingDotsButton, LaunchButton, GradientBeamButton } from '../components/RectangleButtons';
 
 const Register = () => {
   const navigate = useNavigate();
@@ -157,13 +158,12 @@ const Register = () => {
             <div style={{ margin: '20px 0', color: 'var(--text-color)', fontWeight: 700 }}>
               {registeredShopName}
             </div>
-            <button
-              className="neo-btn neo-btn-primary"
-              style={{ width: '100%', padding: '14px', borderRadius: '15px' }}
+            <GradientBeamButton
+              style={{ width: '100%', padding: '14px', borderRadius: '15px', justifyContent: 'center' }}
               onClick={() => navigate('/dashboard')}
             >
               Go to Dashboard
-            </button>
+            </GradientBeamButton>
           </div>
         ) : step === 1 ? (
           /* Step 1 Form */
@@ -265,9 +265,12 @@ const Register = () => {
               )}
             </div>
 
-            <button type="submit" className="neo-btn neo-btn-primary" style={{ width: '100%', marginTop: '10px' }}>
-              Continue to Shop Configuration <ArrowRight size={18} />
-            </button>
+            <FloatingDotsButton 
+              type="submit" 
+              style={{ width: '100%', marginTop: '10px', justifyContent: 'center' }}
+            >
+              Continue to Shop Configuration
+            </FloatingDotsButton>
           </form>
         ) : (
           /* Step 2 Form */
@@ -335,23 +338,22 @@ const Register = () => {
               </div>
             </div>
 
-            <div style={{ display: 'flex', gap: '15px' }}>
+            <div style={{ display: 'flex', gap: '15px', alignItems: 'center' }}>
               <button 
                 type="button" 
                 className="neo-btn" 
-                style={{ flex: '1' }}
+                style={{ flex: '1', minHeight: '48px' }}
                 onClick={() => setStep(1)}
               >
                 <ArrowLeft size={18} /> Back
               </button>
-              <button 
+              <LaunchButton 
                 type="submit" 
-                className="neo-btn neo-btn-primary" 
-                style={{ flex: '2' }}
+                style={{ flex: '2', justifyContent: 'center' }}
                 disabled={loading}
               >
                 {loading ? 'Processing...' : 'Create Shop Account'}
-              </button>
+              </LaunchButton>
             </div>
           </form>
         )}

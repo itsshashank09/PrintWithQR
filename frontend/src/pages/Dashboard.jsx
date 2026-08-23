@@ -9,6 +9,12 @@ import {
 import { supabase } from '../supabaseClient';
 import { triggerAutoCleanup, syncOrdersToLocalStorage } from '../utils/cleanup';
 import { processSubscriptionPayment } from '../utils/payment';
+import { 
+  FloatingDotsButton, 
+  LaunchButton, 
+  LumenButton, 
+  GradientBeamButton 
+} from '../components/RectangleButtons';
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -824,10 +830,10 @@ pause`;
                   </p>
                 </div>
 
-                <button
-                  className="neo-btn neo-btn-primary"
-                  style={{ padding: '14px 24px', borderRadius: '15px', fontSize: '0.98rem', fontWeight: 700, gap: '10px', display: 'flex', alignItems: 'center', whiteSpace: 'nowrap' }}
+                <LaunchButton
+                  style={{ padding: '14px 24px', borderRadius: '15px', fontSize: '0.98rem', fontWeight: 700, whiteSpace: 'nowrap' }}
                   disabled={upgradingInDashboard}
+                  icon={<Zap size={18} />}
                   onClick={() => {
                     processSubscriptionPayment({
                       plan: 'yearly',
@@ -841,8 +847,8 @@ pause`;
                     });
                   }}
                 >
-                  <Zap size={18} /> {upgradingInDashboard ? 'Launching Razorpay...' : 'Upgrade Now for ₹599'}
-                </button>
+                  {upgradingInDashboard ? 'Launching Razorpay...' : 'Upgrade Now for ₹599'}
+                </LaunchButton>
               </div>
             </div>
           )}
@@ -911,10 +917,15 @@ pause`;
                   </div>
                 ) : null}
 
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                   {posterDataUrl && (
-                    <a href={posterDataUrl} download={`${shopName}_Official_Shop_Poster.png`} className="neo-btn neo-btn-primary" style={{ width: '100%', textDecoration: 'none', justifyContent: 'center', padding: '12px 16px' }}>
-                      <Download size={18} /> Download Shop Poster (PNG)
+                    <a href={posterDataUrl} download={`${shopName}_Official_Shop_Poster.png`} style={{ textDecoration: 'none', width: '100%' }}>
+                      <FloatingDotsButton 
+                        style={{ width: '100%', padding: '12px 16px', justifyContent: 'center' }}
+                        icon={<Download size={18} />}
+                      >
+                        Download Shop Poster (PNG)
+                      </FloatingDotsButton>
                     </a>
                   )}
                   {qrCodeUrl && (

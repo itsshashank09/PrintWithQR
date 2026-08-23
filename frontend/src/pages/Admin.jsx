@@ -6,6 +6,7 @@ import {
   RefreshCw, AlertTriangle, UserCheck, Shield, Lock, User, Key, Phone
 } from 'lucide-react';
 import { supabase } from '../supabaseClient';
+import { FloatingDotsButton, LaunchButton, LumenButton } from '../components/RectangleButtons';
 
 const Admin = () => {
   const navigate = useNavigate();
@@ -414,14 +415,13 @@ const Admin = () => {
               </div>
             </div>
 
-            <button 
+            <FloatingDotsButton 
               type="submit" 
-              className="neo-btn neo-btn-primary" 
-              style={{ width: '100%', padding: '14px', borderRadius: '14px', fontSize: '1rem' }}
+              style={{ width: '100%', padding: '14px', borderRadius: '14px', fontSize: '1rem', justifyContent: 'center' }}
               disabled={adminSubmitting}
             >
               {adminSubmitting ? 'Authenticating Admin...' : 'Login to Admin Panel'}
-            </button>
+            </FloatingDotsButton>
           </form>
 
           <div style={{ marginTop: '25px', textAlign: 'center' }}>
@@ -770,13 +770,13 @@ const Admin = () => {
                 </div>
               </div>
 
-              <div style={{ display: 'flex', gap: '15px', justifyContent: 'flex-end' }}>
+              <div style={{ display: 'flex', gap: '15px', justifyContent: 'flex-end', alignItems: 'center' }}>
                 <button type="button" className="neo-btn" onClick={() => setShowEditModal(false)} style={{ padding: '10px 20px', borderRadius: '12px' }}>
                   Cancel
                 </button>
-                <button type="submit" className="neo-btn" style={{ padding: '10px 20px', borderRadius: '12px', color: 'var(--accent-color)' }}>
+                <FloatingDotsButton type="submit" style={{ padding: '10px 22px', fontSize: '0.92rem' }}>
                   Save Changes
-                </button>
+                </FloatingDotsButton>
               </div>
             </form>
           </div>
@@ -823,13 +823,13 @@ const Admin = () => {
               </div>
             </div>
 
-            <div style={{ display: 'flex', gap: '15px', justifyContent: 'flex-end' }}>
+            <div style={{ display: 'flex', gap: '15px', justifyContent: 'flex-end', alignItems: 'center' }}>
               <button className="neo-btn" onClick={() => setShowRenewModal(false)} style={{ padding: '10px 20px', borderRadius: '12px' }}>
                 Cancel
               </button>
-              <button className="neo-btn" onClick={handleRenewSubscription} style={{ padding: '10px 20px', borderRadius: '12px', color: '#f59e0b' }}>
+              <LaunchButton onClick={handleRenewSubscription} style={{ padding: '10px 22px', fontSize: '0.92rem' }}>
                 Confirm Renewal
-              </button>
+              </LaunchButton>
             </div>
           </div>
         </div>

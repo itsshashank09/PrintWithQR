@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { Phone, Lock, Printer, AlertCircle, Eye, EyeOff } from 'lucide-react';
 import { supabase } from '../supabaseClient';
+import { FloatingDotsButton } from '../components/RectangleButtons';
 
 const Login = () => {
   const navigate = useNavigate();
@@ -192,9 +193,13 @@ const Login = () => {
             </div>
           </div>
 
-          <button type="submit" className="neo-btn neo-btn-primary" style={{ width: '100%', padding: '14px', borderRadius: '15px' }} disabled={loading}>
-            {loading ? 'Logging in...' : 'Sign In'}
-          </button>
+          <FloatingDotsButton 
+            type="submit" 
+            style={{ width: '100%', padding: '14px', borderRadius: '15px', justifyContent: 'center' }} 
+            disabled={loading}
+          >
+            {loading ? 'Logging in...' : 'Sign In to Dashboard'}
+          </FloatingDotsButton>
         </form>
 
         <div style={{ textAlign: 'center', marginTop: '25px', fontSize: '0.95rem' }}>

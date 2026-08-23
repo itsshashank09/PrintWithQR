@@ -5,6 +5,13 @@ import {
   Zap, FileText, Instagram, PhoneCall, Smartphone, Lock, Volume2, 
   Sparkles, CheckCircle2 
 } from 'lucide-react';
+import { 
+  FloatingDotsButton, 
+  LaunchButton, 
+  GradientBeamButton, 
+  LumenButton, 
+  DarkGlassButton 
+} from '../components/RectangleButtons';
 
 const Landing = () => {
   const navigate = useNavigate();
@@ -47,8 +54,8 @@ const Landing = () => {
             <PhoneCall size={16} style={{ color: 'var(--accent)' }} />
             <span>+919483030043</span>
           </a>
-          <button className="neo-btn" onClick={() => navigate('/login')}>Login</button>
-          <button className="neo-btn neo-btn-primary" onClick={() => navigate('/register')}>Register Shop</button>
+          <LumenButton variant="ghost" onClick={() => navigate('/login')}>Login</LumenButton>
+          <GradientBeamButton onClick={() => navigate('/register')} style={{ padding: '10px 22px', fontSize: '0.88rem' }}>Register Shop</GradientBeamButton>
         </div>
       </header>
 
@@ -73,21 +80,20 @@ const Landing = () => {
               Let customers upload files, preview documents, select print options, and checkout in 3 steps from their mobile browser. No app installs, no WhatsApp chat clutter, no manual file sharing.
             </p>
             
-            <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap', marginTop: '10px' }}>
-              <button 
-                className="neo-btn neo-btn-primary" 
-                style={{ padding: '14px 32px', fontSize: '1rem', borderRadius: 'var(--radius-md)', display: 'flex', alignItems: 'center', gap: '10px' }} 
+            <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap', marginTop: '10px', alignItems: 'center' }}>
+              <FloatingDotsButton 
                 onClick={() => navigate('/register')}
+                style={{ padding: '14px 30px', fontSize: '1.02rem', borderRadius: 'var(--radius-md)' }}
               >
-                Start Free Trial <ArrowRight size={18} />
-              </button>
-              <button 
-                className="neo-btn" 
-                style={{ padding: '14px 28px', fontSize: '1rem', borderRadius: 'var(--radius-md)' }} 
+                Start Free Trial
+              </FloatingDotsButton>
+              <LumenButton 
+                variant="ghost" 
                 onClick={() => navigate('/login')}
+                style={{ height: '48px', padding: '0 26px', fontSize: '0.98rem' }}
               >
                 Partner Log In
-              </button>
+              </LumenButton>
             </div>
           </div>
 
@@ -160,9 +166,12 @@ const Landing = () => {
                   </div>
 
                   {/* Print Submission Trigger */}
-                  <button className="neo-btn neo-btn-primary" style={{ padding: '14px', width: '100%', fontSize: '0.92rem' }} onClick={() => setHeroTab('shop')}>
-                    <Printer size={18} /> Send File to Counter Printer <ArrowRight size={16} />
-                  </button>
+                  <GradientBeamButton 
+                    style={{ width: '100%', padding: '12px', fontSize: '0.92rem' }} 
+                    onClick={() => setHeroTab('shop')}
+                  >
+                    Send File to Counter Printer
+                  </GradientBeamButton>
 
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
                     <CheckCircle2 size={14} style={{ color: 'var(--success)' }} /> Customer pays ₹36 cash/UPI at pickup
@@ -196,9 +205,9 @@ const Landing = () => {
                     </div>
 
                     <div style={{ display: 'flex', gap: '8px' }}>
-                      <button className="neo-btn neo-btn-primary" style={{ flex: 1, padding: '10px', fontSize: '0.82rem' }}>
-                        <Printer size={15} /> Print Now
-                      </button>
+                      <LaunchButton style={{ width: '100%', padding: '10px', fontSize: '0.85rem' }}>
+                        Print Now
+                      </LaunchButton>
                     </div>
                   </div>
 
@@ -419,9 +428,12 @@ const Landing = () => {
                 </div>
               </div>
 
-              <button className="neo-btn" style={{ width: '100%', padding: '14px', marginTop: 'auto' }} onClick={() => navigate('/register')}>
-                Select Monthly
-              </button>
+              <DarkGlassButton 
+                style={{ width: '100%', height: '48px', marginTop: 'auto', borderRadius: '14px' }} 
+                onClick={() => navigate('/register')}
+              >
+                Select Monthly Plan
+              </DarkGlassButton>
             </div>
 
             {/* Yearly Card (Recommended) */}
@@ -462,9 +474,12 @@ const Landing = () => {
                 </div>
               </div>
 
-              <button className="neo-btn neo-btn-primary" style={{ width: '100%', padding: '14px', marginTop: 'auto' }} onClick={() => navigate('/register')}>
-                Select Annual Plan
-              </button>
+              <LaunchButton 
+                style={{ width: '100%', marginTop: 'auto' }} 
+                onClick={() => navigate('/register')}
+              >
+                Select Annual Plan (50% Off)
+              </LaunchButton>
             </div>
 
           </div>
