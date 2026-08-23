@@ -47,14 +47,19 @@ const Payment = () => {
         throw new Error('Shop ID is missing. Please sign in again or contact support.');
       }
 
+      const { data: { session } } = await supabase.auth.getSession();
+      const headers = { 'Content-Type': 'application/json' };
+      if (session?.access_token) {
+        headers['Authorization'] = `Bearer ${session.access_token}`;
+      }
+
       const verifyRes = await fetch(`${import.meta.env.VITE_API_URL || '/api'}/verify-payment`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers,
         body: JSON.stringify({
           razorpay_order_id: orderId,
           razorpay_payment_id: paymentId,
           razorpay_signature: signature,
-          plan: selectedPlan,
           shopId: effectiveShopId
         })
       });

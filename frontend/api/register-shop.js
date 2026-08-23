@@ -3,11 +3,31 @@ import { createClient } from '@supabase/supabase-js';
 
 const supabaseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
 const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-const registrationSecret = process.env.REGISTRATION_SECRET || 'please_change_this_secret';
+const registrationSecret = process.env.REGISTRATION_SECRET;
 
 const MAX_REGISTRATION_PER_IP = parseInt(process.env.RATE_LIMIT_REGISTRATION_MAX_PER_IP || '8', 10);
 const REGISTRATION_WINDOW_MINUTES = parseInt(process.env.RATE_LIMIT_REGISTRATION_WINDOW_MINUTES || '60', 10);
 const MAX_SUSPICIOUS_IP_REGISTRATIONS = parseInt(process.env.RATE_LIMIT_SUSPICIOUS_IP_MAX || '4', 10);
+
+function setCors(req, res) {
+  const origin = req.headers.origin;
+  const allowedOrigins = [
+    process.env.ALLOWED_ORIGIN,
+    'https://www.printwithqr.in',
+    'https://printwithqr.in',
+    'http://localhost:5173',
+    'http://localhost:3000'
+  ].filter(Boolean);
+
+  if (origin && (allowedOrigins.includes(origin) || origin.endsWith('.vercel.app'))) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+    res.setHeader('Access-Control-Allow-Credentials', 'true');
+  } else {
+    res.setHeader('Access-Control-Allow-Origin', 'https://www.printwithqr.in');
+  }
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+}
 
 const hashValue = (value) => {
   return crypto.createHmac('sha256', registrationSecret).update(String(value || '')).digest('hex');
@@ -16,13 +36,12 @@ const hashValue = (value) => {
 const getClient = () => createClient(supabaseUrl, serviceRoleKey, { auth: { autoRefreshToken: false, persistSession: false } });
 
 export default async function handler(req, res) {
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  setCors(req, res);
 
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method Not Allowed' });
   if (!serviceRoleKey) return res.status(500).json({ error: 'Server configuration error: missing Supabase service role key.' });
+  if (!registrationSecret) return res.status(500).json({ error: 'Server security configuration error: missing registration secret.' });
 
   try {
     let body = req.body;
@@ -61,7 +80,7 @@ export default async function handler(req, res) {
 
     const windowStart = new Date(Date.now() - REGISTRATION_WINDOW_MINUTES * 60 * 1000).toISOString();
 
-    const { data: ipAttemptsData, count: ipAttemptCount } = await adminClient
+    const { count: ipAttemptCount } = await adminClient
       .from('registration_attempts')
       .select('id', { count: 'exact' })
       .eq('type', 'registration')
@@ -79,7 +98,7 @@ export default async function handler(req, res) {
         device_hash: deviceHash,
         ip_hash: ipHash,
         is_success: false,
-        details: JSON.stringify({ reason: 'bot-detected', botScore, botFlags }),
+        details: JSON.stringify({ reason: 'bot-detected' }),
         created_at: now
       });
 
@@ -130,7 +149,7 @@ export default async function handler(req, res) {
           device_hash: deviceHash,
           ip_hash: ipHash,
           is_success: false,
-          details: JSON.stringify({ reason: 'device-already-used', shop_id: existingDeviceShop?.id || 'deleted-shop' }),
+          details: JSON.stringify({ reason: 'device-already-used' }),
           created_at: now
         });
 
@@ -139,7 +158,7 @@ export default async function handler(req, res) {
     }
 
     if (ipHash) {
-      const { data: suspiciousIps, count: suspiciousIpCount } = await adminClient
+      const { count: suspiciousIpCount } = await adminClient
         .from('registration_attempts')
         .select('id', { count: 'exact' })
         .eq('type', 'registration')

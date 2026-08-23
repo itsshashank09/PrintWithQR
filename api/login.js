@@ -7,7 +7,27 @@ const anonKey = process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_
 const authKey = serviceRoleKey || anonKey;
 const RATE_LIMIT_LOGIN_MAX_PER_IP = parseInt(process.env.RATE_LIMIT_LOGIN_MAX_PER_IP || '10', 10);
 const RATE_LIMIT_LOGIN_WINDOW_MINUTES = parseInt(process.env.RATE_LIMIT_LOGIN_WINDOW_MINUTES || '15', 10);
-const REQUEST_LOG_SECRET = process.env.REQUEST_LOG_SECRET || 'please_change_me';
+const REQUEST_LOG_SECRET = process.env.REQUEST_LOG_SECRET;
+
+function setCors(req, res) {
+  const origin = req.headers.origin;
+  const allowedOrigins = [
+    process.env.ALLOWED_ORIGIN,
+    'https://www.printwithqr.in',
+    'https://printwithqr.in',
+    'http://localhost:5173',
+    'http://localhost:3000'
+  ].filter(Boolean);
+
+  if (origin && (allowedOrigins.includes(origin) || origin.endsWith('.vercel.app'))) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+    res.setHeader('Access-Control-Allow-Credentials', 'true');
+  } else {
+    res.setHeader('Access-Control-Allow-Origin', 'https://www.printwithqr.in');
+  }
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+}
 
 const hashValue = (value) => {
   return crypto.createHmac('sha256', REQUEST_LOG_SECRET).update(String(value || '')).digest('hex');
@@ -16,12 +36,20 @@ const hashValue = (value) => {
 const getClient = () => createClient(supabaseUrl, authKey, { auth: { autoRefreshToken: false, persistSession: false } });
 
 export default async function handler(req, res) {
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  setCors(req, res);
 
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method Not Allowed' });
+
+  if (!REQUEST_LOG_SECRET) {
+    console.error('[login] Missing REQUEST_LOG_SECRET environment variable.');
+    return res.status(500).json({ error: 'Server security configuration error.' });
+  }
+
+  if (!supabaseUrl || !authKey) {
+    console.error('[login] Missing Supabase configuration.');
+    return res.status(500).json({ error: 'Server database configuration error.' });
+  }
 
   try {
     let body = req.body;
@@ -69,7 +97,7 @@ export default async function handler(req, res) {
       device_hash: deviceHash,
       ip_hash: ipHash,
       is_success: successful ? true : false,
-      details: JSON.stringify({ error: authError?.message || null }),
+      details: JSON.stringify({ error: authError ? 'auth-failed' : null }),
       created_at: new Date().toISOString()
     });
 
@@ -79,7 +107,7 @@ export default async function handler(req, res) {
 
     return res.status(200).json({ success: true, user: authData.user, session: authData.session });
   } catch (err) {
-    console.error('[login] Error:', err);
-    return res.status(500).json({ error: err.message || 'Server error during login.' });
+    console.error('[login] Error:', err.message || err);
+    return res.status(500).json({ error: 'Server error during login.' });
   }
 }

@@ -1,8 +1,25 @@
-export default async function handler(req, res) {
-  // CORS Headers
-  res.setHeader('Access-Control-Allow-Origin', '*');
+function setCors(req, res) {
+  const origin = req.headers.origin;
+  const allowedOrigins = [
+    process.env.ALLOWED_ORIGIN,
+    'https://www.printwithqr.in',
+    'https://printwithqr.in',
+    'http://localhost:5173',
+    'http://localhost:3000'
+  ].filter(Boolean);
+
+  if (origin && (allowedOrigins.includes(origin) || origin.endsWith('.vercel.app'))) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+    res.setHeader('Access-Control-Allow-Credentials', 'true');
+  } else {
+    res.setHeader('Access-Control-Allow-Origin', 'https://www.printwithqr.in');
+  }
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+}
+
+export default async function handler(req, res) {
+  setCors(req, res);
   
   if (req.method === 'OPTIONS') {
     return res.status(200).end();
