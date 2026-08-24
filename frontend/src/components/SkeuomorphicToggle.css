@@ -1,0 +1,363 @@
+﻿/* ==========================================================================
+   SKEUOMORPHIC TOGGLE (Tactile Neuform DOM/CSS Switch)
+   ========================================================================== */
+
+.skeuo-toggle-wrapper {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  position: relative;
+  user-select: none;
+  cursor: pointer;
+}
+
+.skeuo-toggle-wrapper.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+/* Hidden native input for accessible semantics */
+.skeuo-toggle-input {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+  margin: 0;
+  pointer-events: none;
+}
+
+/* ==========================================================================
+   TRACK (Inset Debossed Capsule Groove)
+   ========================================================================== */
+
+.skeuo-toggle-track {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  box-sizing: border-box;
+  cursor: pointer;
+  overflow: hidden;
+  border-radius: 9999px;
+  
+  /* Light theme track base */
+  background: linear-gradient(180deg, #d3d7de 0%, #e6e9ef 40%, #cbd1dc 100%);
+  border: 1px solid rgba(0, 0, 0, 0.16);
+  box-shadow: 
+    inset 0 3px 6px rgba(0, 0, 0, 0.35),
+    inset 0 1px 2px rgba(0, 0, 0, 0.4),
+    0 1px 1px rgba(255, 255, 255, 0.9);
+  
+  transition: 
+    background 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+    border-color 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+    box-shadow 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Dark theme track base */
+.dark-theme .skeuo-toggle-track,
+.skeuo-toggle-wrapper.mode-dark .skeuo-toggle-track {
+  background: linear-gradient(180deg, #090e17 0%, #0f172a 45%, #182234 100%);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 
+    inset 0 3px 7px rgba(0, 0, 0, 0.8),
+    inset 0 1px 3px rgba(0, 0, 0, 0.9),
+    0 1px 1px rgba(255, 255, 255, 0.07);
+}
+
+/* Track Active / Checked State */
+.skeuo-toggle-track.checked {
+  background: linear-gradient(180deg, rgba(2, 132, 199, 0.28) 0%, rgba(14, 165, 233, 0.4) 50%, rgba(56, 189, 248, 0.22) 100%),
+              linear-gradient(180deg, #cbd5e1 0%, #e2e8f0 100%);
+  border-color: rgba(14, 165, 233, 0.5);
+  box-shadow: 
+    inset 0 3px 6px rgba(0, 0, 0, 0.4),
+    inset 0 0 14px rgba(56, 189, 248, 0.45),
+    0 1px 1px rgba(255, 255, 255, 0.85);
+}
+
+.dark-theme .skeuo-toggle-track.checked,
+.skeuo-toggle-wrapper.mode-dark .skeuo-toggle-track.checked {
+  background: linear-gradient(180deg, rgba(2, 132, 199, 0.35) 0%, rgba(14, 165, 233, 0.45) 50%, rgba(56, 189, 248, 0.25) 100%),
+              linear-gradient(180deg, #090e17 0%, #0f172a 100%);
+  border-color: rgba(56, 189, 248, 0.4);
+  box-shadow: 
+    inset 0 3px 8px rgba(0, 0, 0, 0.85),
+    inset 0 0 18px rgba(56, 189, 248, 0.4),
+    0 1px 1px rgba(255, 255, 255, 0.08);
+}
+
+/* Debossed Groove Indicators inside track (I / O) */
+.skeuo-track-glyph {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  font-family: system-ui, -apple-system, sans-serif;
+  font-weight: 800;
+  line-height: 1;
+  pointer-events: none;
+  transition: opacity 0.3s ease, color 0.3s ease, text-shadow 0.3s ease;
+  user-select: none;
+}
+
+.skeuo-track-glyph-on {
+  left: 9px;
+  color: rgba(14, 165, 233, 0.85);
+  text-shadow: 0 0 6px rgba(56, 189, 248, 0.6);
+  opacity: 0;
+}
+
+.skeuo-track-glyph-off {
+  right: 9px;
+  color: rgba(100, 116, 139, 0.6);
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.5);
+  opacity: 1;
+}
+
+.dark-theme .skeuo-track-glyph-off,
+.skeuo-toggle-wrapper.mode-dark .skeuo-track-glyph-off {
+  color: rgba(148, 163, 184, 0.35);
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.9);
+}
+
+.skeuo-toggle-track.checked .skeuo-track-glyph-on {
+  opacity: 1;
+}
+
+.skeuo-toggle-track.checked .skeuo-track-glyph-off {
+  opacity: 0.15;
+}
+
+/* ==========================================================================
+   THUMB / KNOB (Extruded Tactile Metal/Molded Dial)
+   ========================================================================== */
+
+.skeuo-toggle-thumb {
+  position: absolute;
+  box-sizing: border-box;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2;
+
+  /* Light theme knob styling */
+  background: radial-gradient(circle at 35% 30%, #ffffff 0%, #f1f5f9 40%, #cbd5e1 85%, #94a3b8 100%);
+  border: 0.5px solid rgba(255, 255, 255, 0.8);
+  box-shadow: 
+    0 4px 8px rgba(0, 0, 0, 0.3),
+    0 2px 4px rgba(0, 0, 0, 0.2),
+    inset 0 1.5px 1.5px rgba(255, 255, 255, 0.95),
+    inset 0 -1.5px 2px rgba(0, 0, 0, 0.22);
+  
+  transition: 
+    transform 0.36s cubic-bezier(0.34, 1.45, 0.64, 1),
+    background 0.3s ease,
+    box-shadow 0.3s ease,
+    border-color 0.3s ease;
+}
+
+/* Dark theme knob styling */
+.dark-theme .skeuo-toggle-thumb,
+.skeuo-toggle-wrapper.mode-dark .skeuo-toggle-thumb {
+  background: radial-gradient(circle at 35% 30%, #475569 0%, #334155 45%, #1e293b 85%, #0f172a 100%);
+  border: 0.5px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 
+    0 5px 10px rgba(0, 0, 0, 0.65),
+    0 2px 4px rgba(0, 0, 0, 0.45),
+    inset 0 1.5px 1.5px rgba(255, 255, 255, 0.35),
+    inset 0 -1.5px 2px rgba(0, 0, 0, 0.6);
+}
+
+/* Tactile micro-grip ridges in thumb center */
+.skeuo-thumb-grip {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2.5px;
+  pointer-events: none;
+}
+
+.skeuo-thumb-grip-line {
+  width: 1.5px;
+  height: 9px;
+  border-radius: 1px;
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.25) 0%, rgba(255, 255, 255, 0.6) 100%);
+  box-shadow: 0 0.5px 0.5px rgba(0, 0, 0, 0.2);
+}
+
+.dark-theme .skeuo-thumb-grip-line,
+.skeuo-toggle-wrapper.mode-dark .skeuo-thumb-grip-line {
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.7) 0%, rgba(255, 255, 255, 0.2) 100%);
+}
+
+/* Tactile LED Power Pin in thumb */
+.skeuo-thumb-led {
+  position: absolute;
+  top: 3px;
+  right: 50%;
+  transform: translateX(50%);
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: #94a3b8;
+  box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.4);
+  transition: background 0.3s ease, box-shadow 0.3s ease;
+}
+
+.dark-theme .skeuo-thumb-led,
+.skeuo-toggle-wrapper.mode-dark .skeuo-thumb-led {
+  background: #334155;
+}
+
+.skeuo-toggle-track.checked .skeuo-thumb-led {
+  background: #38bdf8;
+  box-shadow: 0 0 6px #38bdf8, 0 0 10px rgba(56, 189, 248, 0.8), inset 0 0.5px 1px #ffffff;
+}
+
+/* Knob Compression / Tactile Press Interaction */
+.skeuo-toggle-wrapper:active .skeuo-toggle-thumb {
+  transform: scale(0.93);
+}
+
+.skeuo-toggle-wrapper:active .skeuo-toggle-track.checked .skeuo-toggle-thumb {
+  transform: translateX(var(--skeuo-travel, 26px)) scale(0.93);
+}
+
+/* Focus Ring for Keyboard Navigation */
+.skeuo-toggle-input:focus-visible + .skeuo-toggle-track {
+  outline: none;
+  box-shadow: 
+    0 0 0 3px rgba(14, 165, 233, 0.45),
+    inset 0 3px 6px rgba(0, 0, 0, 0.35);
+}
+
+/* ==========================================================================
+   SIZE VARIANTS
+   ========================================================================== */
+
+/* Size: MD (Default) */
+.skeuo-size-md {
+  --skeuo-width: 58px;
+  --skeuo-height: 32px;
+  --skeuo-knob: 26px;
+  --skeuo-travel: 26px;
+  --skeuo-inset: 3px;
+}
+
+.skeuo-size-md .skeuo-toggle-track {
+  width: 58px;
+  height: 32px;
+}
+
+.skeuo-size-md .skeuo-toggle-thumb {
+  top: 3px;
+  left: 3px;
+  width: 26px;
+  height: 26px;
+}
+
+.skeuo-size-md .skeuo-toggle-track.checked .skeuo-toggle-thumb {
+  transform: translateX(26px);
+}
+
+.skeuo-size-md .skeuo-track-glyph {
+  font-size: 10px;
+}
+
+/* Size: SM (Compact) */
+.skeuo-size-sm {
+  --skeuo-width: 44px;
+  --skeuo-height: 24px;
+  --skeuo-knob: 18px;
+  --skeuo-travel: 20px;
+  --skeuo-inset: 3px;
+}
+
+.skeuo-size-sm .skeuo-toggle-track {
+  width: 44px;
+  height: 24px;
+}
+
+.skeuo-size-sm .skeuo-toggle-thumb {
+  top: 3px;
+  left: 3px;
+  width: 18px;
+  height: 18px;
+}
+
+.skeuo-size-sm .skeuo-toggle-track.checked .skeuo-toggle-thumb {
+  transform: translateX(20px);
+}
+
+.skeuo-size-sm .skeuo-track-glyph {
+  font-size: 8px;
+}
+
+.skeuo-size-sm .skeuo-track-glyph-on {
+  left: 6px;
+}
+
+.skeuo-size-sm .skeuo-track-glyph-off {
+  right: 6px;
+}
+
+.skeuo-size-sm .skeuo-thumb-grip-line {
+  height: 6px;
+  width: 1px;
+}
+
+.skeuo-size-sm .skeuo-thumb-led {
+  width: 3px;
+  height: 3px;
+  top: 2px;
+}
+
+/* Size: LG (Prominent) */
+.skeuo-size-lg {
+  --skeuo-width: 72px;
+  --skeuo-height: 40px;
+  --skeuo-knob: 32px;
+  --skeuo-travel: 32px;
+  --skeuo-inset: 4px;
+}
+
+.skeuo-size-lg .skeuo-toggle-track {
+  width: 72px;
+  height: 40px;
+}
+
+.skeuo-size-lg .skeuo-toggle-thumb {
+  top: 4px;
+  left: 4px;
+  width: 32px;
+  height: 32px;
+}
+
+.skeuo-size-lg .skeuo-toggle-track.checked .skeuo-toggle-thumb {
+  transform: translateX(32px);
+}
+
+.skeuo-size-lg .skeuo-track-glyph {
+  font-size: 12px;
+}
+
+.skeuo-size-lg .skeuo-track-glyph-on {
+  left: 12px;
+}
+
+.skeuo-size-lg .skeuo-track-glyph-off {
+  right: 12px;
+}
+
+.skeuo-size-lg .skeuo-thumb-grip-line {
+  height: 12px;
+  width: 2px;
+}
+
+.skeuo-size-lg .skeuo-thumb-led {
+  width: 5px;
+  height: 5px;
+  top: 4px;
+}

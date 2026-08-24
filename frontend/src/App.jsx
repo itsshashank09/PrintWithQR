@@ -11,6 +11,8 @@ import UploadPage from './pages/Upload';
 import OrderStatus from './pages/OrderStatus';
 import Admin from './pages/Admin';
 
+import { SkeuomorphicToggle } from './components/SkeuomorphicToggle';
+
 // Global FAB theme toggler component
 const ThemeToggleButton = () => {
   const [isDarkMode, setIsDarkMode] = useState(() => localStorage.getItem('theme') === 'dark');
@@ -26,14 +28,19 @@ const ThemeToggleButton = () => {
   }, [isDarkMode]);
 
   return (
-    <button 
-      className="theme-toggle-fab" 
-      onClick={() => setIsDarkMode(!isDarkMode)}
+    <div 
+      className="theme-toggle-floating-container"
       title={isDarkMode ? "Switch to Light Mode" : "Switch to Dark Mode"}
-      aria-label="Toggle Theme"
     >
-      {isDarkMode ? <Sun size={20} /> : <Moon size={20} />}
-    </button>
+      <SkeuomorphicToggle
+        size="sm"
+        checked={isDarkMode}
+        onChange={(val) => setIsDarkMode(val)}
+        onIcon={<Moon size={11} style={{ verticalAlign: 'middle' }} />}
+        offIcon={<Sun size={11} style={{ verticalAlign: 'middle' }} />}
+        ariaLabel={isDarkMode ? "Switch to Light Mode" : "Switch to Dark Mode"}
+      />
+    </div>
   );
 };
 

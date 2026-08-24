@@ -1,23 +1,42 @@
+import crypto from 'crypto';
 import { createClient } from '@supabase/supabase-js';
 
 const supabaseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
-const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY;
+const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+const cronSecret = process.env.CRON_SECRET;
 
 export default async function handler(req, res) {
-  // Allow manual, browser, or Vercel cron invocation
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  if (req.method !== 'GET' && req.method !== 'POST') {
+    return res.status(405).json({ error: 'Method Not Allowed' });
+  }
 
-  if (req.method === 'OPTIONS') {
-    return res.status(200).end();
+  // 1. Mandatory CRON_SECRET validation
+  if (!cronSecret) {
+    console.error('[cleanup] Server security configuration error: CRON_SECRET is not configured.');
+    return res.status(500).json({ error: 'Server security configuration error: CRON_SECRET is not configured.' });
+  }
+
+  const authHeader = req.headers.authorization || req.headers.Authorization || '';
+  if (!authHeader.startsWith('Bearer ')) {
+    return res.status(401).json({ error: 'Unauthorized: Missing or malformed authorization header.' });
+  }
+
+  const providedToken = authHeader.slice(7).trim();
+  const providedBuf = Buffer.from(providedToken, 'utf8');
+  const expectedBuf = Buffer.from(cronSecret.trim(), 'utf8');
+
+  if (providedBuf.length !== expectedBuf.length || !crypto.timingSafeEqual(providedBuf, expectedBuf)) {
+    return res.status(401).json({ error: 'Unauthorized: Invalid cron secret.' });
+  }
+
+  if (!supabaseUrl || !serviceRoleKey) {
+    return res.status(500).json({ error: 'Server database configuration error: missing Supabase credentials.' });
   }
 
   try {
-    if (!supabaseUrl || !supabaseKey) {
-      return res.status(200).json({ message: 'Supabase credentials not configured.' });
-    }
-
-    const supabase = createClient(supabaseUrl, supabaseKey);
+    const supabase = createClient(supabaseUrl, serviceRoleKey, {
+      auth: { autoRefreshToken: false, persistSession: false }
+    });
     const fiveMinutesAgoMs = Date.now() - 5 * 60 * 1000;
     
     // Calculate midnight timestamp for daily database order reset
@@ -28,8 +47,7 @@ export default async function handler(req, res) {
     let deletedOrdersCount = 0;
 
     // 1. Storage Cleanup: Delete customer document files older than 5 minutes from 'print-jobs' bucket
-    // (Ensures raw customer files do not stay in storage or get saved to browser)
-    const { data: shopFolders } = await supabase.storage
+    const { data: shopFolders, error: listErr } = await supabase.storage
       .from('print-jobs')
       .list('');
 
@@ -64,7 +82,6 @@ export default async function handler(req, res) {
     }
 
     // 2. Daily Database Order Reset: Delete active order records created before 12 AM today
-    // (Order details are backed up into owner's browser localStorage prior to midnight reset)
     const { data: oldOrders } = await supabase
       .from('orders')
       .select('id')
@@ -90,7 +107,8 @@ export default async function handler(req, res) {
       timestamp: new Date().toISOString()
     });
   } catch (err) {
-    console.error('Cleanup execution error:', err);
-    return res.status(500).json({ error: err.message });
+    console.error('[cleanup] Execution error:', err);
+    return res.status(500).json({ error: err.message || 'Server error during cleanup execution.' });
   }
 }
+

@@ -69,7 +69,7 @@ export default async function handler(req, res) {
     }
 
     const client = getClient();
-    const ip = String(req.headers['x-forwarded-for'] || req.socket.remoteAddress || '').split(',')[0].trim();
+    const ip = String(req.headers?.['x-forwarded-for'] || req.socket?.remoteAddress || '').split(',')[0].trim();
     const ipHash = ip ? hashValue(ip) : null;
     const deviceHash = deviceId ? hashValue(deviceId) : null;
     const phoneHash = hashValue(cleanPhone);

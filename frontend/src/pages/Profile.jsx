@@ -4,6 +4,7 @@ import { User, Phone, MapPin, Printer, Lock, ChevronLeft, Landmark, AlertCircle,
 import { supabase } from '../supabaseClient';
 import { processSubscriptionPayment } from '../utils/payment';
 import { FloatingDotsButton, GradientBeamButton } from '../components/RectangleButtons';
+import { SkeuomorphicToggle } from '../components/SkeuomorphicToggle';
 
 const Profile = () => {
   const navigate = useNavigate();
@@ -462,21 +463,19 @@ const Profile = () => {
               </div>
 
               {/* Toggle Color Option */}
-              <div className="neo-switch-container" style={{ margin: 0, paddingTop: '15px', borderTop: '1px solid var(--border-color)' }}>
-                <div>
+              <div className="neo-switch-container" style={{ margin: 0, paddingTop: '15px', borderTop: '1px solid var(--border-color)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div style={{ paddingRight: '15px' }}>
                   <span className="neo-switch-label" style={{ fontWeight: 600 }}>Enable Color Printing Option</span>
                   <p style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', marginTop: '4px', marginBottom: 0 }}>
                     If disabled, customers will only be able to place Black &amp; White print orders (Color toggle will be hidden).
                   </p>
                 </div>
-                <label className="neo-switch">
-                  <input 
-                    type="checkbox" 
-                    checked={colorEnabled} 
-                    onChange={(e) => setColorEnabled(e.target.checked)} 
-                  />
-                  <span className="neo-slider"></span>
-                </label>
+                <SkeuomorphicToggle 
+                  checked={colorEnabled} 
+                  onChange={(val) => setColorEnabled(val)}
+                  size="md"
+                  ariaLabel="Enable Color Printing Option"
+                />
               </div>
             </div>
 

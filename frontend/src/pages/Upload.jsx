@@ -9,6 +9,7 @@ import {
   FloatingDotsButton, 
   GradientBeamButton 
 } from '../components/RectangleButtons';
+import { SkeuomorphicToggle } from '../components/SkeuomorphicToggle';
 
 // Helper to get pdfjsLib dynamically from window
 const getPdfjs = () => {
@@ -105,6 +106,27 @@ const UploadPage = () => {
 
 
 
+  // Order capability state for secure signed customer submission
+  const [orderCapability, setOrderCapability] = useState(null);
+  const [capabilityFetchedAt, setCapabilityFetchedAt] = useState(0);
+
+  const fetchOrderCapability = async (targetShopId) => {
+    try {
+      const resp = await fetch(`/api/create-print-order?shopId=${encodeURIComponent(targetShopId)}`);
+      if (resp.ok) {
+        const data = await resp.json();
+        if (data.capabilityToken) {
+          setOrderCapability(data.capabilityToken);
+          setCapabilityFetchedAt(Date.now());
+          return data.capabilityToken;
+        }
+      }
+    } catch (err) {
+      console.warn('Failed to obtain order session capability:', err);
+    }
+    return null;
+  };
+
   // Fetch shop metadata on entry
   useEffect(() => {
     const fetchShop = async () => {
@@ -132,6 +154,7 @@ const UploadPage = () => {
         }
         
         setShop(data);
+        await fetchOrderCapability(shopId);
       } catch (err) {
         setError(err.message);
       } finally {
@@ -465,11 +488,34 @@ const UploadPage = () => {
         });
       }
 
-      // Send order creation request to server API which will enforce free-print accounting transactionally
+      // Ensure we have a valid capability token (refresh if older than 12 minutes)
+      let currentCapability = orderCapability;
+      if (!currentCapability || (Date.now() - capabilityFetchedAt > 12 * 60 * 1000)) {
+        currentCapability = await fetchOrderCapability(shopId);
+      }
+
+      if (!currentCapability) {
+        throw new Error('Unable to establish secure order session with shop. Please refresh the page and try again.');
+      }
+
+      const idempotencyKey = `idemp_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`;
+
+      // Send order creation request to server API with signed capability token & idempotency key
       const resp = await fetch('/api/create-print-order', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ shopId, orders: preparedOrders, paperSize, duplex })
+        headers: { 
+          'Content-Type': 'application/json',
+          'X-Order-Capability': currentCapability,
+          'X-Idempotency-Key': idempotencyKey
+        },
+        body: JSON.stringify({ 
+          shopId, 
+          orders: preparedOrders, 
+          paperSize, 
+          duplex,
+          orderCapability: currentCapability,
+          idempotencyKey
+        })
       });
 
       const payload = await resp.json();
@@ -808,18 +854,16 @@ const UploadPage = () => {
 
                 <div 
                   className="neo-switch-container" 
-                  style={{ alignSelf: 'center', marginTop: '15px', cursor: 'pointer' }}
-                  onClick={() => setDuplex(prev => !prev)}
+                  style={{ alignSelf: 'center', marginTop: '15px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
                 >
-                  <span className="neo-switch-label" style={{ fontSize: '0.95rem', userSelect: 'none' }}>Double Sided</span>
-                  <label className="neo-switch" onClick={(e) => e.stopPropagation()}>
-                    <input 
-                      type="checkbox" 
-                      checked={duplex} 
-                      onChange={(e) => setDuplex(e.target.checked)}
-                    />
-                    <span className="neo-slider"></span>
-                  </label>
+                  <SkeuomorphicToggle 
+                    checked={duplex} 
+                    onChange={(val) => setDuplex(val)}
+                    size="md"
+                    label="Double Sided"
+                    description="Print on both sides"
+                    ariaLabel="Double Sided Printing"
+                  />
                 </div>
               </div>
 

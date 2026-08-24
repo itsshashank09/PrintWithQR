@@ -71,8 +71,12 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: 'Name, valid 10-digit phone number, and password are required.' });
     }
 
+    if (!deviceId || typeof deviceId !== 'string' || deviceId.trim().length < 6) {
+      return res.status(400).json({ error: 'Device verification identifier is required for registration.' });
+    }
+
     const adminClient = getClient();
-    const ip = String(req.headers['x-forwarded-for'] || req.socket.remoteAddress || '').split(',')[0].trim();
+    const ip = String(req.headers?.['x-forwarded-for'] || req.socket?.remoteAddress || '').split(',')[0].trim();
     const ipHash = ip ? hashValue(ip) : null;
     const deviceHash = deviceId ? hashValue(deviceId) : null;
     const phoneHash = hashValue(cleanPhone);

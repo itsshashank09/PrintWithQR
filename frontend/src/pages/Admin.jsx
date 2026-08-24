@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import { supabase } from '../supabaseClient';
 import { FloatingDotsButton, GradientBeamButton } from '../components/RectangleButtons';
+import { SkeuomorphicToggle } from '../components/SkeuomorphicToggle';
 
 const Admin = () => {
   const navigate = useNavigate();
@@ -629,19 +630,13 @@ const Admin = () => {
                         </span>
                       </td>
                       <td style={{ padding: '15px 10px' }}>
-                        <div style={{ display: 'flex', justifyContent: 'center', gap: '10px' }}>
-                          <button
-                            onClick={() => handleToggleStatus(shop)}
-                            className="neo-btn"
-                            style={{ 
-                              padding: '8px', 
-                              borderRadius: '8px', 
-                              color: isActive ? 'var(--danger-color)' : '#10b981' 
-                            }}
-                            title={isActive ? 'Deactivate Shop' : 'Activate Shop'}
-                          >
-                            <Power size={14} />
-                          </button>
+                        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '10px' }}>
+                          <SkeuomorphicToggle 
+                            size="sm"
+                            checked={isActive}
+                            onChange={() => handleToggleStatus(shop)}
+                            ariaLabel={isActive ? 'Deactivate Shop' : 'Activate Shop'}
+                          />
                           <button
                             onClick={() => {
                               setRenewingShop(shop);
