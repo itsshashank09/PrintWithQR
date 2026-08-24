@@ -7,9 +7,6 @@ import {
 import { supabase } from '../supabaseClient';
 import { 
   FloatingDotsButton, 
-  LaunchButton, 
-  LumenButton, 
-  DotBorderButton, 
   GradientBeamButton 
 } from '../components/RectangleButtons';
 
@@ -859,14 +856,14 @@ const UploadPage = () => {
 
               {/* Prominent Full-Width Bottom Checkout Button */}
               <div style={{ marginTop: '10px' }}>
-                <LaunchButton 
+                <FloatingDotsButton 
                   style={{ width: '100%', padding: '16px', fontSize: '1.05rem', borderRadius: '16px', justifyContent: 'center' }}
                   disabled={placingOrder || totalPagesToPrint <= 0}
                   onClick={handlePlaceOrder}
                   icon={<Printer size={20} className="btn-printer-pulse" />}
                 >
                   {placingOrder ? `Uploading ${files.length} file(s)...` : `Confirm & Send to Printer (₹${calculateTotal()})`}
-                </LaunchButton>
+                </FloatingDotsButton>
               </div>
               
             </div>

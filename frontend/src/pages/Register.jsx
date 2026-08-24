@@ -3,7 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { User, Phone, MapPin, Printer, Lock, Landmark, AlertCircle, ArrowRight, ArrowLeft, Eye, EyeOff, CheckCircle } from 'lucide-react';
 import { supabase } from '../supabaseClient';
 import { getDeviceFingerprint } from '../utils/deviceFingerprint';
-import { FloatingDotsButton, LaunchButton, GradientBeamButton } from '../components/RectangleButtons';
+import { FloatingDotsButton, GradientBeamButton } from '../components/RectangleButtons';
 
 const Register = () => {
   const navigate = useNavigate();
@@ -347,13 +347,13 @@ const Register = () => {
               >
                 <ArrowLeft size={18} /> Back
               </button>
-              <LaunchButton 
+              <FloatingDotsButton 
                 type="submit" 
                 style={{ flex: '2', justifyContent: 'center' }}
                 disabled={loading}
               >
                 {loading ? 'Processing...' : 'Create Shop Account'}
-              </LaunchButton>
+              </FloatingDotsButton>
             </div>
           </form>
         )}

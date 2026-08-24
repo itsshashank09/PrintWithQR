@@ -6,7 +6,7 @@ import {
   RefreshCw, AlertTriangle, UserCheck, Shield, Lock, User, Key, Phone
 } from 'lucide-react';
 import { supabase } from '../supabaseClient';
-import { FloatingDotsButton, LaunchButton, LumenButton } from '../components/RectangleButtons';
+import { FloatingDotsButton, GradientBeamButton } from '../components/RectangleButtons';
 
 const Admin = () => {
   const navigate = useNavigate();
@@ -827,9 +827,9 @@ const Admin = () => {
               <button className="neo-btn" onClick={() => setShowRenewModal(false)} style={{ padding: '10px 20px', borderRadius: '12px' }}>
                 Cancel
               </button>
-              <LaunchButton onClick={handleRenewSubscription} style={{ padding: '10px 22px', fontSize: '0.92rem' }}>
+              <FloatingDotsButton onClick={handleRenewSubscription} style={{ padding: '10px 22px', fontSize: '0.92rem' }}>
                 Confirm Renewal
-              </LaunchButton>
+              </FloatingDotsButton>
             </div>
           </div>
         </div>

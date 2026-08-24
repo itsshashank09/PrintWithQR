@@ -11,8 +11,6 @@ import { triggerAutoCleanup, syncOrdersToLocalStorage } from '../utils/cleanup';
 import { processSubscriptionPayment } from '../utils/payment';
 import { 
   FloatingDotsButton, 
-  LaunchButton, 
-  LumenButton, 
   GradientBeamButton 
 } from '../components/RectangleButtons';
 
@@ -830,7 +828,7 @@ pause`;
                   </p>
                 </div>
 
-                <LaunchButton
+                <FloatingDotsButton
                   style={{ padding: '14px 24px', borderRadius: '15px', fontSize: '0.98rem', fontWeight: 700, whiteSpace: 'nowrap' }}
                   disabled={upgradingInDashboard}
                   icon={<Zap size={18} />}
@@ -848,7 +846,7 @@ pause`;
                   }}
                 >
                   {upgradingInDashboard ? 'Launching Razorpay...' : 'Upgrade Now for ₹599'}
-                </LaunchButton>
+                </FloatingDotsButton>
               </div>
             </div>
           )}

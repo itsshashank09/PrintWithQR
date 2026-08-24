@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { Phone, Lock, Printer, AlertCircle, Eye, EyeOff } from 'lucide-react';
+import { Phone, Lock, Printer, AlertCircle, Eye, EyeOff, ArrowRight } from 'lucide-react';
 import { supabase } from '../supabaseClient';
-import { FloatingDotsButton } from '../components/RectangleButtons';
+import { GradientBeamButton } from '../components/RectangleButtons';
 
 const Login = () => {
   const navigate = useNavigate();
@@ -193,13 +193,14 @@ const Login = () => {
             </div>
           </div>
 
-          <FloatingDotsButton 
+          <GradientBeamButton 
             type="submit" 
             style={{ width: '100%', padding: '14px', borderRadius: '15px', justifyContent: 'center' }} 
             disabled={loading}
+            icon={<ArrowRight size={16} className="btn-beam-icon" />}
           >
             {loading ? 'Logging in...' : 'Sign In to Dashboard'}
-          </FloatingDotsButton>
+          </GradientBeamButton>
         </form>
 
         <div style={{ textAlign: 'center', marginTop: '25px', fontSize: '0.95rem' }}>

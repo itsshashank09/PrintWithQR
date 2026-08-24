@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { CheckCircle, QrCode, HardDrive, Terminal, AlertCircle, CreditCard, ShieldCheck, Zap, ArrowRight, X } from 'lucide-react';
 import { supabase } from '../supabaseClient';
-import { LaunchButton, LumenButton } from '../components/RectangleButtons';
+import { FloatingDotsButton } from '../components/RectangleButtons';
 
 // Dynamic script loader helper for checkout.js
 const loadRazorpayScript = () => {
@@ -260,14 +260,14 @@ const Payment = () => {
           )}
         </div>
 
-        <LaunchButton 
+        <FloatingDotsButton 
           style={{ width: '100%', padding: '16px', borderRadius: '15px', fontSize: '1.05rem', justifyContent: 'center' }} 
           onClick={handlePay} 
           disabled={loading}
           icon={<CreditCard size={18} />}
         >
           {loading ? 'Opening Payment Gateway...' : `Pay ₹${amountToPay} via Razorpay`}
-        </LaunchButton>
+        </FloatingDotsButton>
       </div>
     </div>
   );

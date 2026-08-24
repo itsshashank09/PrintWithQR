@@ -7,10 +7,7 @@ import {
 } from 'lucide-react';
 import { 
   FloatingDotsButton, 
-  LaunchButton, 
-  GradientBeamButton, 
-  LumenButton, 
-  DarkGlassButton 
+  GradientBeamButton 
 } from '../components/RectangleButtons';
 
 const Landing = () => {
@@ -54,8 +51,19 @@ const Landing = () => {
             <PhoneCall size={16} style={{ color: 'var(--accent)' }} />
             <span>+919483030043</span>
           </a>
-          <LumenButton variant="ghost" onClick={() => navigate('/login')}>Login</LumenButton>
-          <GradientBeamButton onClick={() => navigate('/register')} style={{ padding: '10px 22px', fontSize: '0.88rem' }}>Register Shop</GradientBeamButton>
+          <GradientBeamButton 
+            onClick={() => navigate('/login')} 
+            style={{ padding: '8px 18px', fontSize: '0.86rem', minHeight: '40px' }}
+            icon={<ArrowRight size={14} className="btn-beam-icon" />}
+          >
+            Login
+          </GradientBeamButton>
+          <FloatingDotsButton 
+            onClick={() => navigate('/register')} 
+            style={{ padding: '10px 22px', fontSize: '0.88rem', minHeight: '42px' }}
+          >
+            Register Shop
+          </FloatingDotsButton>
         </div>
       </header>
 
@@ -87,13 +95,13 @@ const Landing = () => {
               >
                 Start Free Trial
               </FloatingDotsButton>
-              <LumenButton 
-                variant="ghost" 
+              <GradientBeamButton 
                 onClick={() => navigate('/login')}
-                style={{ height: '48px', padding: '0 26px', fontSize: '0.98rem' }}
+                style={{ padding: '14px 28px', fontSize: '0.98rem' }}
+                icon={<ArrowRight size={16} className="btn-beam-icon" />}
               >
                 Partner Log In
-              </LumenButton>
+              </GradientBeamButton>
             </div>
           </div>
 
@@ -205,9 +213,9 @@ const Landing = () => {
                     </div>
 
                     <div style={{ display: 'flex', gap: '8px' }}>
-                      <LaunchButton style={{ width: '100%', padding: '10px', fontSize: '0.85rem' }}>
+                      <FloatingDotsButton style={{ width: '100%', padding: '10px', fontSize: '0.85rem' }} icon={<Printer size={15} />}>
                         Print Now
-                      </LaunchButton>
+                      </FloatingDotsButton>
                     </div>
                   </div>
 
@@ -428,12 +436,13 @@ const Landing = () => {
                 </div>
               </div>
 
-              <DarkGlassButton 
-                style={{ width: '100%', height: '48px', marginTop: 'auto', borderRadius: '14px' }} 
+              <GradientBeamButton 
+                style={{ width: '100%', padding: '12px 20px', justifyContent: 'center', marginTop: 'auto' }} 
                 onClick={() => navigate('/register')}
+                icon={<ArrowRight size={16} className="btn-beam-icon" />}
               >
                 Select Monthly Plan
-              </DarkGlassButton>
+              </GradientBeamButton>
             </div>
 
             {/* Yearly Card (Recommended) */}
@@ -474,12 +483,13 @@ const Landing = () => {
                 </div>
               </div>
 
-              <LaunchButton 
-                style={{ width: '100%', marginTop: 'auto' }} 
+              <FloatingDotsButton 
+                style={{ width: '100%', padding: '14px 24px', justifyContent: 'center', marginTop: 'auto' }} 
                 onClick={() => navigate('/register')}
+                icon={<Zap size={18} />}
               >
                 Select Annual Plan (50% Off)
-              </LaunchButton>
+              </FloatingDotsButton>
             </div>
 
           </div>

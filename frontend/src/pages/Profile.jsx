@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { User, Phone, MapPin, Printer, Lock, ChevronLeft, Landmark, AlertCircle, Save, Eye, EyeOff, ShieldCheck, Zap, Calendar, Clock } from 'lucide-react';
+import { User, Phone, MapPin, Printer, Lock, ChevronLeft, Landmark, AlertCircle, Save, Eye, EyeOff, ShieldCheck, Zap, Calendar, Clock, ArrowRight } from 'lucide-react';
 import { supabase } from '../supabaseClient';
 import { processSubscriptionPayment } from '../utils/payment';
-import { FloatingDotsButton, LaunchButton, LumenButton } from '../components/RectangleButtons';
+import { FloatingDotsButton, GradientBeamButton } from '../components/RectangleButtons';
 
 const Profile = () => {
   const navigate = useNavigate();
@@ -289,22 +289,22 @@ const Profile = () => {
               </div>
 
               <div style={{ display: 'flex', gap: '15px', flexWrap: 'wrap' }}>
-                <LumenButton 
-                  variant="ghost"
+                <GradientBeamButton 
                   onClick={() => handleUpgradePlan('monthly')}
                   disabled={upgradingPlan}
-                  style={{ flex: '1 1 180px', height: '48px', justifyContent: 'center' }}
+                  style={{ flex: '1 1 180px', justifyContent: 'center', padding: '12px 24px' }}
+                  icon={<ArrowRight size={16} className="btn-beam-icon" />}
                 >
                   {upgradingPlan ? 'Connecting...' : 'Upgrade ₹99/mo'}
-                </LumenButton>
-                <LaunchButton 
+                </GradientBeamButton>
+                <FloatingDotsButton 
                   onClick={() => handleUpgradePlan('yearly')}
                   disabled={upgradingPlan}
                   style={{ flex: '1 1 180px', justifyContent: 'center' }}
                   icon={<Zap size={18} />}
                 >
                   {upgradingPlan ? 'Connecting...' : 'Upgrade ₹599/yr'}
-                </LaunchButton>
+                </FloatingDotsButton>
               </div>
               <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', textAlign: 'center', marginTop: '15px' }}>
                 * Both plans include the exact same premium features. Save more with the Yearly plan!
