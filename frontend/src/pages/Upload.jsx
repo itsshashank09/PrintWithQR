@@ -593,12 +593,12 @@ const UploadPage = () => {
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                   {files.length > 0 ? (
-                    <GradientBeamButton 
+                    <FloatingDotsButton 
                       onClick={() => { setActiveFileIndex(0); setPreviewPage(1); setStep(2); }}
-                      style={{ minWidth: '140px', height: '38px', padding: '0 16px', fontSize: '0.86rem' }}
+                      style={{ minHeight: '38px', height: '38px', padding: '0 16px', minWidth: '140px', fontSize: '0.86rem', borderRadius: '12px' }}
                     >
                       Next: Preview
-                    </GradientBeamButton>
+                    </FloatingDotsButton>
                   ) : (
                     <div style={{ minWidth: '140px', height: '38px' }} />
                   )}
@@ -665,17 +665,6 @@ const UploadPage = () => {
                   </div>
                 )}
               </div>
-
-              {/* Fixed Footer */}
-              <div className="upload-wizard-footer">
-                <FloatingDotsButton 
-                  style={{ width: '100%', height: '48px', minHeight: '48px', fontSize: '0.98rem', justifyContent: 'center' }}
-                  disabled={files.length === 0}
-                  onClick={() => { setActiveFileIndex(0); setPreviewPage(1); setStep(2); }}
-                >
-                  {files.length > 0 ? `Proceed to Preview (${files.length} file${files.length > 1 ? 's' : ''})` : 'Select Files to Proceed'}
-                </FloatingDotsButton>
-              </div>
             </div>
           )}
 
@@ -693,17 +682,17 @@ const UploadPage = () => {
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <button 
                     className="neo-btn" 
-                    style={{ height: '38px', padding: '0 16px', borderRadius: '9999px', fontSize: '0.85rem', fontWeight: 600 }}
+                    style={{ height: '38px', padding: '0 16px', borderRadius: '12px', fontSize: '0.85rem', fontWeight: 600 }}
                     onClick={() => setStep(1)}
                   >
                     Back
                   </button>
-                  <GradientBeamButton
+                  <FloatingDotsButton
                     onClick={() => setStep(3)}
-                    style={{ minWidth: '140px', height: '38px', padding: '0 16px', fontSize: '0.86rem' }}
+                    style={{ minHeight: '38px', height: '38px', padding: '0 16px', minWidth: '140px', fontSize: '0.86rem', borderRadius: '12px' }}
                   >
                     Next: Options
-                  </GradientBeamButton>
+                  </FloatingDotsButton>
                 </div>
               </div>
 
@@ -753,11 +742,11 @@ const UploadPage = () => {
                     <img 
                       src={fileUrl} 
                       alt="Preview" 
-                      style={{ maxWidth: '100%', maxHeight: '320px', objectFit: 'contain', borderRadius: '8px', boxShadow: 'var(--shadow-dark)' }} 
+                      style={{ maxWidth: '100%', maxHeight: '300px', objectFit: 'contain', borderRadius: '8px', boxShadow: 'var(--shadow-dark)' }} 
                     />
                   ) : (
                     <div style={{ position: 'relative', width: '100%', display: 'flex', justifyContent: 'center' }}>
-                      <canvas ref={canvasRef} style={{ boxShadow: 'var(--shadow-dark)', borderRadius: '4px', maxWidth: '100%', maxHeight: '320px', display: 'block' }}></canvas>
+                      <canvas ref={canvasRef} style={{ boxShadow: 'var(--shadow-dark)', borderRadius: '4px', maxWidth: '100%', maxHeight: '300px', display: 'block' }}></canvas>
                       {renderingPreview && (
                         <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(224, 224, 224, 0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '12px' }}>
                           <RefreshCw size={24} className="neo-upload-icon" />
@@ -766,16 +755,6 @@ const UploadPage = () => {
                     </div>
                   )}
                 </div>
-              </div>
-
-              {/* Fixed Footer */}
-              <div className="upload-wizard-footer">
-                <FloatingDotsButton 
-                  style={{ width: '100%', height: '48px', minHeight: '48px', fontSize: '0.98rem', justifyContent: 'center' }}
-                  onClick={() => setStep(3)}
-                >
-                  Proceed to Print Options
-                </FloatingDotsButton>
               </div>
             </div>
           )}
@@ -794,19 +773,19 @@ const UploadPage = () => {
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <button 
                     className="neo-btn" 
-                    style={{ height: '38px', padding: '0 16px', borderRadius: '9999px', fontSize: '0.85rem', fontWeight: 600 }}
+                    style={{ height: '38px', padding: '0 16px', borderRadius: '12px', fontSize: '0.85rem', fontWeight: 600 }}
                     onClick={() => setStep(2)}
                   >
                     Back
                   </button>
-                  <GradientBeamButton 
+                  <FloatingDotsButton 
                     disabled={placingOrder || totalPagesToPrint <= 0}
                     onClick={handlePlaceOrder}
-                    style={{ minWidth: '140px', height: '38px', padding: '0 14px', fontSize: '0.84rem' }}
-                    icon={<Printer size={15} style={{ verticalAlign: 'middle' }} />}
+                    style={{ minHeight: '38px', height: '38px', padding: '0 14px', minWidth: '140px', fontSize: '0.84rem', borderRadius: '12px' }}
+                    icon={<Printer size={15} className="btn-printer-pulse" />}
                   >
                     {placingOrder ? 'Sending...' : `Confirm (₹${calculateTotal()})`}
-                  </GradientBeamButton>
+                  </FloatingDotsButton>
                 </div>
               </div>
 
@@ -933,18 +912,6 @@ const UploadPage = () => {
                     </p>
                   </div>
                 </div>
-              </div>
-
-              {/* Fixed Footer */}
-              <div className="upload-wizard-footer">
-                <FloatingDotsButton 
-                  style={{ width: '100%', height: '48px', minHeight: '48px', fontSize: '0.98rem', justifyContent: 'center' }}
-                  disabled={placingOrder || totalPagesToPrint <= 0}
-                  onClick={handlePlaceOrder}
-                  icon={<Printer size={18} className="btn-printer-pulse" />}
-                >
-                  {placingOrder ? `Uploading ${files.length} file(s)...` : `Confirm & Send to Printer (₹${calculateTotal()})`}
-                </FloatingDotsButton>
               </div>
             </div>
           )}
