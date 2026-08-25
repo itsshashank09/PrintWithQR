@@ -578,338 +578,374 @@ const UploadPage = () => {
           </div>
         </div>
 
-        <div className="neo-card" style={{ padding: '30px' }}>
+        <div className="neo-card upload-wizard-card">
           
           {/* STEP 1: FILE UPLOAD */}
           {step === 1 && (
             <div className="step-enter">
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '5px' }}>
-                <h3 style={{ margin: 0 }}>File Upload</h3>
+              {/* Fixed Header */}
+              <div className="upload-wizard-header">
+                <div>
+                  <h3 style={{ margin: 0, fontSize: '1.2rem', fontWeight: 700 }}>File Upload</h3>
+                  <p style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', margin: '3px 0 0 0' }}>
+                    PDF, PNG, JPG, JPEG (Max 100MB)
+                  </p>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  {files.length > 0 ? (
+                    <GradientBeamButton 
+                      onClick={() => { setActiveFileIndex(0); setPreviewPage(1); setStep(2); }}
+                      style={{ minWidth: '140px', height: '38px', padding: '0 16px', fontSize: '0.86rem' }}
+                    >
+                      Next: Preview
+                    </GradientBeamButton>
+                  ) : (
+                    <div style={{ minWidth: '140px', height: '38px' }} />
+                  )}
+                </div>
+              </div>
+
+              {/* Scrollable Body */}
+              <div className="upload-wizard-body">
+                <div 
+                  className={`neo-upload-area ${dragging ? 'dragging' : ''}`}
+                  onDragOver={handleDragOver}
+                  onDragLeave={handleDragLeave}
+                  onDrop={handleDrop}
+                  onClick={() => document.getElementById('fileInput').click()}
+                  style={{ padding: '24px 20px', minHeight: '120px' }}
+                >
+                  <Upload size={34} className="neo-upload-icon" />
+                  <div style={{ marginTop: '8px' }}>
+                    <span style={{ fontWeight: 600, fontSize: '0.95rem' }}>{files.length > 0 ? 'Tap to add more files' : 'Drag & drop files here'}</span>
+                    <span style={{ display: 'block', fontSize: '0.78rem', color: 'var(--text-secondary)', marginTop: '4px' }}>{files.length > 0 ? `${files.length} file(s) selected` : 'or click to browse (multiple allowed)'}</span>
+                  </div>
+                  <input 
+                    id="fileInput" 
+                    type="file" 
+                    style={{ display: 'none' }} 
+                    accept=".pdf,.png,.jpg,.jpeg"
+                    multiple
+                    onChange={(e) => { handleFilesSelected(Array.from(e.target.files)); e.target.value = ''; }}
+                  />
+                </div>
+
+                {/* Selected Files List */}
                 {files.length > 0 && (
-                  <FloatingDotsButton 
-                    onClick={() => { setActiveFileIndex(0); setPreviewPage(1); setStep(2); }}
-                    style={{ padding: '8px 18px', fontSize: '0.88rem', minHeight: '40px' }}
-                  >
-                    Next: Preview
-                  </FloatingDotsButton>
+                  <div style={{ marginTop: '12px' }}>
+                    {files.map((entry, idx) => (
+                      <div key={idx} className="neo-card-inset" style={{ 
+                        padding: '10px 14px', borderRadius: '10px', marginBottom: '8px',
+                        display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px'
+                      }}>
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <FileText size={16} style={{ color: 'var(--accent)', flexShrink: 0 }} />
+                            <span style={{ fontWeight: 600, fontSize: '0.88rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                              {entry.file.name}
+                            </span>
+                          </div>
+                          <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginTop: '2px', paddingLeft: '24px' }}>
+                            {(entry.file.size / (1024 * 1024)).toFixed(2)} MB · {entry.filePages} page(s)
+                          </div>
+                        </div>
+                        <button
+                          className="neo-btn"
+                          style={{ padding: '5px 10px', borderRadius: '8px', fontSize: '0.78rem', flexShrink: 0 }}
+                          onClick={(e) => { e.stopPropagation(); removeFile(idx); }}
+                          title="Remove file"
+                        >
+                          ✕
+                        </button>
+                      </div>
+                    ))}
+                    <div style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', textAlign: 'right', marginTop: '4px' }}>
+                      Total: {files.length} file(s) · {totalFilesPages} page(s)
+                    </div>
+                  </div>
                 )}
               </div>
-              <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '20px' }}>PDF, PNG, JPG, JPEG supported (Max 100MB per file). Select multiple files at once.</p>
-              
-              <div 
-                className={`neo-upload-area ${dragging ? 'dragging' : ''}`}
-                onDragOver={handleDragOver}
-                onDragLeave={handleDragLeave}
-                onDrop={handleDrop}
-                onClick={() => document.getElementById('fileInput').click()}
-                style={{ padding: '30px 20px', minHeight: '130px' }}
-              >
-                <Upload size={36} className="neo-upload-icon" />
-                <div style={{ marginTop: '10px' }}>
-                  <span style={{ fontWeight: 600 }}>{files.length > 0 ? 'Tap to add more files' : 'Drag & drop files here'}</span>
-                  <span style={{ display: 'block', fontSize: '0.8rem', color: 'var(--text-secondary)', marginTop: '5px' }}>{files.length > 0 ? `${files.length} file(s) selected` : 'or click to browse (multiple allowed)'}</span>
-                </div>
-                <input 
-                  id="fileInput" 
-                  type="file" 
-                  style={{ display: 'none' }} 
-                  accept=".pdf,.png,.jpg,.jpeg"
-                  multiple
-                  onChange={(e) => { handleFilesSelected(Array.from(e.target.files)); e.target.value = ''; }}
-                />
+
+              {/* Fixed Footer */}
+              <div className="upload-wizard-footer">
+                <FloatingDotsButton 
+                  style={{ width: '100%', height: '48px', minHeight: '48px', fontSize: '0.98rem', justifyContent: 'center' }}
+                  disabled={files.length === 0}
+                  onClick={() => { setActiveFileIndex(0); setPreviewPage(1); setStep(2); }}
+                >
+                  {files.length > 0 ? `Proceed to Preview (${files.length} file${files.length > 1 ? 's' : ''})` : 'Select Files to Proceed'}
+                </FloatingDotsButton>
               </div>
-
-              {/* Selected Files List */}
-              {files.length > 0 && (
-                <div style={{ marginTop: '15px' }}>
-                  {files.map((entry, idx) => (
-                    <div key={idx} className="neo-card-inset" style={{ 
-                      padding: '10px 14px', borderRadius: '10px', marginBottom: '8px',
-                      display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px'
-                    }}>
-                      <div style={{ flex: 1, minWidth: 0 }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                          <FileText size={16} style={{ color: 'var(--accent)', flexShrink: 0 }} />
-                          <span style={{ fontWeight: 600, fontSize: '0.88rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                            {entry.file.name}
-                          </span>
-                        </div>
-                        <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginTop: '2px', paddingLeft: '24px' }}>
-                          {(entry.file.size / (1024 * 1024)).toFixed(2)} MB · {entry.filePages} page(s)
-                        </div>
-                      </div>
-                      <button
-                        className="neo-btn"
-                        style={{ padding: '5px 10px', borderRadius: '8px', fontSize: '0.78rem', flexShrink: 0 }}
-                        onClick={(e) => { e.stopPropagation(); removeFile(idx); }}
-                        title="Remove file"
-                      >
-                        ✕
-                      </button>
-                    </div>
-                  ))}
-                  <div style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', textAlign: 'right', marginTop: '5px' }}>
-                    Total: {files.length} file(s) · {totalFilesPages} page(s)
-                  </div>
-
-                  {/* Prominent Full-Width Bottom Action Trigger */}
-                  <div style={{ marginTop: '20px' }}>
-                    <FloatingDotsButton 
-                      style={{ width: '100%', padding: '14px', fontSize: '1rem', justifyContent: 'center' }}
-                      onClick={() => { setActiveFileIndex(0); setPreviewPage(1); setStep(2); }}
-                    >
-                      Proceed to Preview ({files.length} file{files.length > 1 ? 's' : ''})
-                    </FloatingDotsButton>
-                  </div>
-                </div>
-              )}
-              
             </div>
           )}
 
           {/* STEP 2: PRINT PREVIEW */}
           {step === 2 && (
             <div className="step-enter">
-              {/* File tabs for multi-file preview */}
-              {files.length > 1 && (
-                <div style={{ display: 'flex', gap: '6px', overflowX: 'auto', marginBottom: '12px', paddingBottom: '4px' }}>
-                  {files.map((entry, idx) => (
-                    <button
-                      key={idx}
-                      className={`neo-btn ${idx === activeFileIndex ? 'neo-btn-primary' : ''}`}
-                      style={{ padding: '6px 12px', borderRadius: '8px', fontSize: '0.78rem', whiteSpace: 'nowrap', flexShrink: 0 }}
-                      onClick={() => { setActiveFileIndex(idx); setPreviewPage(1); }}
-                    >
-                      {entry.file.name.length > 18 ? entry.file.name.substring(0, 15) + '...' : entry.file.name}
-                    </button>
-                  ))}
+              {/* Fixed Header */}
+              <div className="upload-wizard-header">
+                <div>
+                  <h3 style={{ margin: 0, fontSize: '1.2rem', fontWeight: 700 }}>Document Preview</h3>
+                  <p style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', margin: '3px 0 0 0' }}>
+                    {fileType === 'pdf' ? `Page ${previewPage} of ${filePages}` : 'Review document preview'}
+                  </p>
                 </div>
-              )}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <button 
+                    className="neo-btn" 
+                    style={{ height: '38px', padding: '0 16px', borderRadius: '9999px', fontSize: '0.85rem', fontWeight: 600 }}
+                    onClick={() => setStep(1)}
+                  >
+                    Back
+                  </button>
+                  <GradientBeamButton
+                    onClick={() => setStep(3)}
+                    style={{ minWidth: '140px', height: '38px', padding: '0 16px', fontSize: '0.86rem' }}
+                  >
+                    Next: Options
+                  </GradientBeamButton>
+                </div>
+              </div>
 
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px', flexWrap: 'wrap', gap: '10px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-                  <h3 style={{ margin: 0 }}>Document Preview</h3>
-                  {fileType === 'pdf' && filePages > 1 && (
-                    <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
-                      <button 
-                        className="neo-btn" 
-                        style={{ padding: '5px 10px', borderRadius: '8px' }}
-                        disabled={previewPage <= 1 || renderingPreview}
-                        onClick={() => setPreviewPage(prev => prev - 1)}
+              {/* Scrollable Body */}
+              <div className="upload-wizard-body">
+                {/* File tabs for multi-file preview */}
+                {files.length > 1 && (
+                  <div style={{ display: 'flex', gap: '6px', overflowX: 'auto', marginBottom: '10px', paddingBottom: '4px', flexShrink: 0 }}>
+                    {files.map((entry, idx) => (
+                      <button
+                        key={idx}
+                        className={`neo-btn ${idx === activeFileIndex ? 'neo-btn-primary' : ''}`}
+                        style={{ padding: '6px 12px', borderRadius: '8px', fontSize: '0.78rem', whiteSpace: 'nowrap', flexShrink: 0 }}
+                        onClick={() => { setActiveFileIndex(idx); setPreviewPage(1); }}
                       >
-                        <ChevronLeft size={14} />
+                        {entry.file.name.length > 18 ? entry.file.name.substring(0, 15) + '...' : entry.file.name}
                       </button>
-                      <span style={{ fontSize: '0.85rem', fontWeight: 600 }}>{previewPage} / {filePages}</span>
-                      <button 
-                        className="neo-btn" 
-                        style={{ padding: '5px 10px', borderRadius: '8px' }}
-                        disabled={previewPage >= filePages || renderingPreview}
-                        onClick={() => setPreviewPage(prev => prev + 1)}
-                      >
-                        <ChevronRight size={14} />
-                      </button>
+                    ))}
+                  </div>
+                )}
+
+                {/* PDF Page Navigation Header inside Preview if multipage */}
+                {fileType === 'pdf' && filePages > 1 && (
+                  <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '12px', marginBottom: '10px', flexShrink: 0 }}>
+                    <button 
+                      className="neo-btn" 
+                      style={{ padding: '5px 12px', borderRadius: '8px' }}
+                      disabled={previewPage <= 1 || renderingPreview}
+                      onClick={() => setPreviewPage(prev => prev - 1)}
+                    >
+                      <ChevronLeft size={14} />
+                    </button>
+                    <span style={{ fontSize: '0.85rem', fontWeight: 600 }}>Page {previewPage} / {filePages}</span>
+                    <button 
+                      className="neo-btn" 
+                      style={{ padding: '5px 12px', borderRadius: '8px' }}
+                      disabled={previewPage >= filePages || renderingPreview}
+                      onClick={() => setPreviewPage(prev => prev + 1)}
+                    >
+                      <ChevronRight size={14} />
+                    </button>
+                  </div>
+                )}
+
+                <div className="neo-preview-box" style={{ background: '#ffffff', minHeight: '260px', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '12px', overflow: 'hidden', padding: '12px' }}>
+                  {fileType === 'image' ? (
+                    <img 
+                      src={fileUrl} 
+                      alt="Preview" 
+                      style={{ maxWidth: '100%', maxHeight: '320px', objectFit: 'contain', borderRadius: '8px', boxShadow: 'var(--shadow-dark)' }} 
+                    />
+                  ) : (
+                    <div style={{ position: 'relative', width: '100%', display: 'flex', justifyContent: 'center' }}>
+                      <canvas ref={canvasRef} style={{ boxShadow: 'var(--shadow-dark)', borderRadius: '4px', maxWidth: '100%', maxHeight: '320px', display: 'block' }}></canvas>
+                      {renderingPreview && (
+                        <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(224, 224, 224, 0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '12px' }}>
+                          <RefreshCw size={24} className="neo-upload-icon" />
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>
-                <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
-                  <button className="neo-btn" onClick={() => setStep(1)}>Back</button>
-                  <FloatingDotsButton
-                    onClick={() => setStep(3)}
-                    style={{ padding: '10px 22px', fontSize: '0.92rem' }}
-                  >
-                    Next: Options
-                  </FloatingDotsButton>
-                </div>
               </div>
 
-              <div className="neo-preview-box" style={{ background: '#ffffff', minHeight: '300px', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '12px', overflow: 'hidden' }}>
-                {fileType === 'image' ? (
-                  <img 
-                    src={fileUrl} 
-                    alt="Preview" 
-                    style={{ maxWidth: '100%', maxHeight: '350px', objectFit: 'contain', borderRadius: '8px', boxShadow: 'var(--shadow-dark)' }} 
-                  />
-                ) : (
-                  <div style={{ position: 'relative', width: '100%', display: 'flex', justifyContent: 'center' }}>
-                    <canvas ref={canvasRef} style={{ boxShadow: 'var(--shadow-dark)', borderRadius: '4px', maxWidth: '100%', maxHeight: '350px', display: 'block' }}></canvas>
-                    {renderingPreview && (
-                      <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(224, 224, 224, 0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '12px' }}>
-                        <RefreshCw size={24} className="neo-upload-icon" />
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
-
-              {/* Prominent Full-Width Bottom Action Trigger */}
-              <div style={{ marginTop: '20px' }}>
-                <button 
-                  className="neo-btn neo-btn-cta pulse-cta" 
-                  style={{ width: '100%', padding: '15px', fontSize: '1rem', borderRadius: '14px', justifyContent: 'center' }}
+              {/* Fixed Footer */}
+              <div className="upload-wizard-footer">
+                <FloatingDotsButton 
+                  style={{ width: '100%', height: '48px', minHeight: '48px', fontSize: '0.98rem', justifyContent: 'center' }}
                   onClick={() => setStep(3)}
                 >
-                  <span>Proceed to Print Options</span>
-                  <span className="btn-arrow-move"><ArrowRight size={18} /></span>
-                </button>
+                  Proceed to Print Options
+                </FloatingDotsButton>
               </div>
-              
             </div>
           )}
 
           {/* STEP 3: PRINT OPTIONS & ORDER */}
           {step === 3 && (
             <div className="step-enter">
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '5px', flexWrap: 'wrap', gap: '10px' }}>
-                <h3 style={{ margin: 0 }}>Print Configuration</h3>
-                <div style={{ display: 'flex', gap: '10px' }}>
-                  <button className="neo-btn" onClick={() => setStep(2)}>Back</button>
-                  <button 
-                    className="neo-btn neo-btn-cta pulse-cta" 
-                    disabled={placingOrder || totalPagesToPrint <= 0}
-                    onClick={handlePlaceOrder}
-                    style={{ padding: '10px 18px', fontSize: '0.9rem' }}
-                  >
-                    <span className="btn-printer-pulse"><Printer size={16} /></span>
-                    <span>{placingOrder ? 'Sending...' : `Confirm Order (₹${calculateTotal()})`}</span>
-                  </button>
-                </div>
-              </div>
-              <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '20px' }}>Select preferences for printing your document</p>
-
-              {/* Color Option */}
-              <div className="neo-input-group" style={{ marginBottom: '15px' }}>
-                <label className="neo-label">Color Option</label>
-                <div className="neo-tabs">
-                  <div 
-                    className={`neo-tab ${printType === 'bw' ? 'active' : ''}`}
-                    onClick={() => setPrintType('bw')}
-                  >
-                    B&W (₹{shop.bw_rate}/page)
-                  </div>
-                  {shop.color_enabled !== 0 ? (
-                    <div 
-                      className={`neo-tab ${printType === 'color' ? 'active' : ''}`}
-                      onClick={() => setPrintType('color')}
-                    >
-                      Color (₹{shop.color_rate}/page)
-                    </div>
-                  ) : (
-                    <div 
-                      className="neo-tab"
-                      style={{ opacity: 0.5, cursor: 'not-allowed', textDecoration: 'line-through' }}
-                      title="Color printing is disabled by this shop"
-                    >
-                      Color (N/A)
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {/* Select Pages */}
-              <div className="neo-input-group" style={{ marginBottom: '15px' }}>
-                <label className="neo-label">Select Pages</label>
-                <select 
-                  className="neo-select"
-                  value={printRangeType}
-                  onChange={(e) => setPrintRangeType(e.target.value)}
-                >
-                  <option value="all">All Pages ({totalFilesPages})</option>
-                  <option value="odd">Odd Pages Only</option>
-                  <option value="even">Even Pages Only</option>
-                  <option value="custom">Custom Range</option>
-                </select>
-              </div>
-
-              {/* Custom Range Input */}
-              {printRangeType === 'custom' && (
-                <div className="neo-input-group" style={{ marginBottom: '15px' }}>
-                  <label className="neo-label">Custom Range (e.g. 2-5, 7, 9-11)</label>
-                  <input 
-                    type="text" 
-                    className="neo-input" 
-                    placeholder="Enter ranges separated by commas"
-                    value={printRangeCustom}
-                    onChange={(e) => setPrintRangeCustom(e.target.value)}
-                  />
-                  <p style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginTop: '5px' }}>
-                    Pages to print: {totalPagesToPrint} / {totalFilesPages}
+              {/* Fixed Header */}
+              <div className="upload-wizard-header">
+                <div>
+                  <h3 style={{ margin: 0, fontSize: '1.2rem', fontWeight: 700 }}>Print Configuration</h3>
+                  <p style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', margin: '3px 0 0 0' }}>
+                    Select print preferences
                   </p>
                 </div>
-              )}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <button 
+                    className="neo-btn" 
+                    style={{ height: '38px', padding: '0 16px', borderRadius: '9999px', fontSize: '0.85rem', fontWeight: 600 }}
+                    onClick={() => setStep(2)}
+                  >
+                    Back
+                  </button>
+                  <GradientBeamButton 
+                    disabled={placingOrder || totalPagesToPrint <= 0}
+                    onClick={handlePlaceOrder}
+                    style={{ minWidth: '140px', height: '38px', padding: '0 14px', fontSize: '0.84rem' }}
+                    icon={<Printer size={15} style={{ verticalAlign: 'middle' }} />}
+                  >
+                    {placingOrder ? 'Sending...' : `Confirm (₹${calculateTotal()})`}
+                  </GradientBeamButton>
+                </div>
+              </div>
 
-              {/* Paper Size & Duplex Switch */}
-              <div className="neo-grid" style={{ gap: '0 20px', gridTemplateColumns: '1fr 1fr', marginBottom: '20px' }}>
-                <div className="neo-input-group">
-                  <label className="neo-label">Paper Size</label>
+              {/* Scrollable Body */}
+              <div className="upload-wizard-body">
+                {/* Color Option */}
+                <div className="neo-input-group" style={{ marginBottom: '14px' }}>
+                  <label className="neo-label">Color Option</label>
+                  <div className="neo-tabs">
+                    <div 
+                      className={`neo-tab ${printType === 'bw' ? 'active' : ''}`}
+                      onClick={() => setPrintType('bw')}
+                    >
+                      B&W (₹{shop.bw_rate}/page)
+                    </div>
+                    {shop.color_enabled !== 0 ? (
+                      <div 
+                        className={`neo-tab ${printType === 'color' ? 'active' : ''}`}
+                        onClick={() => setPrintType('color')}
+                      >
+                        Color (₹{shop.color_rate}/page)
+                      </div>
+                    ) : (
+                      <div 
+                        className="neo-tab"
+                        style={{ opacity: 0.5, cursor: 'not-allowed', textDecoration: 'line-through' }}
+                        title="Color printing is disabled by this shop"
+                      >
+                        Color (N/A)
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Select Pages */}
+                <div className="neo-input-group" style={{ marginBottom: '14px' }}>
+                  <label className="neo-label">Select Pages</label>
                   <select 
                     className="neo-select"
-                    value={paperSize}
-                    onChange={(e) => setPaperSize(e.target.value)}
+                    value={printRangeType}
+                    onChange={(e) => setPrintRangeType(e.target.value)}
                   >
-                    <option value="A4">A4</option>
-                    <option value="Letter">Letter</option>
-                    <option value="16:9">16:9</option>
+                    <option value="all">All Pages ({totalFilesPages})</option>
+                    <option value="odd">Odd Pages Only</option>
+                    <option value="even">Even Pages Only</option>
+                    <option value="custom">Custom Range</option>
                   </select>
                 </div>
 
-                <div 
-                  className="neo-switch-container" 
-                  style={{ alignSelf: 'center', marginTop: '15px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
-                >
-                  <SkeuomorphicToggle 
-                    checked={duplex} 
-                    onChange={(val) => setDuplex(val)}
-                    size="md"
-                    label="Double Sided"
-                    description="Print on both sides"
-                    ariaLabel="Double Sided Printing"
-                  />
+                {/* Custom Range Input */}
+                {printRangeType === 'custom' && (
+                  <div className="neo-input-group" style={{ marginBottom: '14px' }}>
+                    <label className="neo-label">Custom Range (e.g. 2-5, 7, 9-11)</label>
+                    <input 
+                      type="text" 
+                      className="neo-input" 
+                      placeholder="Enter ranges separated by commas"
+                      value={printRangeCustom}
+                      onChange={(e) => setPrintRangeCustom(e.target.value)}
+                    />
+                    <p style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginTop: '4px' }}>
+                      Pages to print: {totalPagesToPrint} / {totalFilesPages}
+                    </p>
+                  </div>
+                )}
+
+                {/* Paper Size & Duplex Switch */}
+                <div className="neo-grid" style={{ gap: '0 16px', gridTemplateColumns: '1fr 1fr', marginBottom: '14px' }}>
+                  <div className="neo-input-group">
+                    <label className="neo-label">Paper Size</label>
+                    <select 
+                      className="neo-select"
+                      value={paperSize}
+                      onChange={(e) => setPaperSize(e.target.value)}
+                    >
+                      <option value="A4">A4</option>
+                      <option value="Letter">Letter</option>
+                      <option value="16:9">16:9</option>
+                    </select>
+                  </div>
+
+                  <div 
+                    className="neo-switch-container" 
+                    style={{ alignSelf: 'center', marginTop: '12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
+                  >
+                    <SkeuomorphicToggle 
+                      checked={duplex} 
+                      onChange={(val) => setDuplex(val)}
+                      size="md"
+                      label="Double Sided"
+                      description="Print on both sides"
+                      ariaLabel="Double Sided Printing"
+                    />
+                  </div>
+                </div>
+
+                {/* Pricing Breakdown */}
+                <div className="neo-card-inset" style={{ padding: '16px', borderRadius: '14px', marginBottom: '14px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
+                    <span style={{ color: 'var(--text-secondary)', fontSize: '0.88rem' }}>Files:</span>
+                    <span style={{ fontWeight: 600, fontSize: '0.88rem' }}>{files.length} file(s)</span>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
+                    <span style={{ color: 'var(--text-secondary)', fontSize: '0.88rem' }}>Total pages to print:</span>
+                    <span style={{ fontWeight: 600, fontSize: '0.88rem' }}>{totalPagesToPrint} page(s)</span>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px', paddingBottom: '8px', borderBottom: '1px solid var(--border-color)' }}>
+                    <span style={{ color: 'var(--text-secondary)', fontSize: '0.88rem' }}>Rate per page:</span>
+                    <span style={{ fontWeight: 600, fontSize: '0.88rem' }}>₹{printType === 'color' ? shop.color_rate : shop.bw_rate}</span>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <span style={{ fontWeight: 700, fontSize: '1rem' }}>Total Cost:</span>
+                    <span style={{ fontWeight: 800, fontSize: '1.5rem', color: 'var(--accent)' }}>₹{calculateTotal()}</span>
+                  </div>
+                </div>
+
+                {/* Cash Payment Banner */}
+                <div className="neo-card-inset" style={{ padding: '12px 14px', borderRadius: '12px', display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
+                  <Landmark size={20} style={{ color: 'var(--accent)', flexShrink: 0 }} />
+                  <div>
+                    <span style={{ fontSize: '0.82rem', fontWeight: 600 }}>Offline Cash / UPI at Counter</span>
+                    <p style={{ fontSize: '0.74rem', color: 'var(--text-secondary)', margin: 0 }}>
+                      Pay at the shop counter when picking up your physical prints.
+                    </p>
+                  </div>
                 </div>
               </div>
 
-              {/* Pricing Breakdown */}
-              <div className="neo-card-inset" style={{ padding: '20px', borderRadius: '15px', marginBottom: '20px' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px' }}>
-                  <span style={{ color: 'var(--text-secondary)' }}>Files:</span>
-                  <span style={{ fontWeight: 600 }}>{files.length} file(s)</span>
-                </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px' }}>
-                  <span style={{ color: 'var(--text-secondary)' }}>Total pages to print:</span>
-                  <span style={{ fontWeight: 600 }}>{totalPagesToPrint} page(s)</span>
-                </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '15px', paddingBottom: '10px', borderBottom: '1px solid var(--border-color)' }}>
-                  <span style={{ color: 'var(--text-secondary)' }}>Rate per page:</span>
-                  <span style={{ fontWeight: 600 }}>₹{printType === 'color' ? shop.color_rate : shop.bw_rate}</span>
-                </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span style={{ fontWeight: 700, fontSize: '1.1rem' }}>Total Cost:</span>
-                  <span style={{ fontWeight: 800, fontSize: '1.6rem', color: 'var(--accent)' }}>₹{calculateTotal()}</span>
-                </div>
-              </div>
-
-              {/* Cash Payment Banner */}
-              <div className="neo-card-inset" style={{ padding: '15px', borderRadius: '12px', display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '20px' }}>
-                <Landmark size={20} style={{ color: 'var(--accent)', flexShrink: 0 }} />
-                <div>
-                  <span style={{ fontSize: '0.85rem', fontWeight: 600 }}>Offline Cash / UPI at Counter</span>
-                  <p style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', margin: 0 }}>
-                    Pay at the shop counter when picking up your physical prints.
-                  </p>
-                </div>
-              </div>
-
-              {/* Prominent Full-Width Bottom Checkout Button */}
-              <div style={{ marginTop: '10px' }}>
+              {/* Fixed Footer */}
+              <div className="upload-wizard-footer">
                 <FloatingDotsButton 
-                  style={{ width: '100%', padding: '16px', fontSize: '1.05rem', borderRadius: '16px', justifyContent: 'center' }}
+                  style={{ width: '100%', height: '48px', minHeight: '48px', fontSize: '0.98rem', justifyContent: 'center' }}
                   disabled={placingOrder || totalPagesToPrint <= 0}
                   onClick={handlePlaceOrder}
-                  icon={<Printer size={20} className="btn-printer-pulse" />}
+                  icon={<Printer size={18} className="btn-printer-pulse" />}
                 >
                   {placingOrder ? `Uploading ${files.length} file(s)...` : `Confirm & Send to Printer (₹${calculateTotal()})`}
                 </FloatingDotsButton>
               </div>
-              
             </div>
           )}
 

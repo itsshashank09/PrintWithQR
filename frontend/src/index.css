@@ -878,7 +878,68 @@ input:checked + .neo-slider:active:before,
   }
 }
 
+/* Step Wizard Fixed Frame & Scrollable Body */
+.upload-wizard-card {
+  max-width: 520px;
+  width: 100%;
+  margin: 0 auto;
+  height: 560px;
+  min-height: 560px;
+  max-height: 560px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  padding: 24px 28px;
+  box-sizing: border-box;
+  position: relative;
+}
+
+.upload-wizard-header {
+  flex-shrink: 0;
+  min-height: 48px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--border-color);
+  gap: 12px;
+}
+
+.upload-wizard-body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding-right: 6px;
+  display: flex;
+  flex-direction: column;
+}
+
+.upload-wizard-footer {
+  flex-shrink: 0;
+  min-height: 54px;
+  padding-top: 12px;
+  margin-top: 10px;
+  border-top: 1px solid var(--border-color);
+  display: flex;
+  align-items: center;
+}
+
+@media (max-width: 600px) {
+  .upload-wizard-card {
+    height: calc(100vh - 160px);
+    min-height: 480px;
+    max-height: calc(100vh - 160px);
+    padding: 16px 18px;
+  }
+}
+
 .step-enter {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
   animation: fadeInStep 180ms cubic-bezier(0.23, 1, 0.32, 1) forwards;
 }
 
