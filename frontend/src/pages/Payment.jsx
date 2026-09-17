@@ -105,7 +105,7 @@ const Payment = () => {
           key: orderData.key,
           amount: orderData.amount,
           currency: orderData.currency || 'INR',
-          name: 'QRPrintPlatform',
+          name: 'PrintWithQR',
           description: selectedPlan === 'yearly' ? 'Annual Print Shop Plan (₹599)' : 'Monthly Print Shop Plan (₹99)',
           order_id: orderData.order_id,
           handler: function (res) {

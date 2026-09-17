@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
   Printer, Shield, QrCode, Monitor, Check, ArrowRight, DollarSign, 
@@ -13,6 +13,11 @@ import {
 const Landing = () => {
   const navigate = useNavigate();
   
+  // Dynamic SEO Title
+  useEffect(() => {
+    document.title = 'PrintWithQR – Online Xerox & Printing Service | Upload & Print';
+  }, []);
+
   // Hero Interactive View State
   const [heroTab, setHeroTab] = useState('customer'); // 'customer' | 'shop' | 'stand'
 
@@ -343,10 +348,10 @@ const Landing = () => {
           </div>
         </section>
 
-        {/* WHY CHOOSE QRPRINT SECTION */}
+        {/* WHY CHOOSE PRINTWITHQR SECTION */}
         <section style={{ display: 'flex', flexDirection: 'column', gap: '28px' }}>
           <div style={{ textAlign: 'center', maxWidth: '600px', margin: '0 auto' }}>
-            <h2 style={{ marginBottom: '8px' }}>Why Print Shops Love QRPrint</h2>
+            <h2 style={{ marginBottom: '8px' }}>Why Print Shops Love PrintWithQR</h2>
             <p>Designed specifically for Indian Xerox centers, DTP hubs, and cyber cafes.</p>
           </div>
 
@@ -499,7 +504,7 @@ const Landing = () => {
         <section style={{ display: 'flex', flexDirection: 'column', gap: '28px' }}>
           <div style={{ textAlign: 'center', maxWidth: '600px', margin: '0 auto' }}>
             <h2 style={{ marginBottom: '8px' }}>Frequently Asked Questions</h2>
-            <p>Everything you need to know about setting up QRPrint at your counter.</p>
+            <p>Everything you need to know about setting up PrintWithQR at your counter.</p>
           </div>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', maxWidth: '800px', margin: '0 auto', width: '100%' }}>

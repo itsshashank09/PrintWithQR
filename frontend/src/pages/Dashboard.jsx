@@ -629,7 +629,7 @@ def print_document_via_dc(file_path, printer_name, duplex_setting=0):
         hdc_handle = win32gui.CreateDC("WINSPOOL", printer_name, devmode)
         hdc = win32ui.CreateDCFromHandle(hdc_handle)
         
-        hdc.StartDoc("QRPrintPlatform Job")
+        hdc.StartDoc("PrintWithQR Job")
         
         ext = os.path.splitext(file_path)[1].lower()
         if ext == '.pdf':
@@ -676,7 +676,7 @@ def draw_image_on_dc(hdc, img):
 
 @sio.event
 def connect():
-    print("Connected to QRPrintPlatform Socket Server.")
+    print("Connected to PrintWithQR Socket Server.")
     sio.emit("joinAgent", SHOP_ID)
     register_printers()
 
@@ -704,7 +704,7 @@ def on_new_print_job(data):
     print("Downloading file...")
     try:
         r = requests.get(file_url)
-        temp_dir = os.path.join(os.path.expanduser('~'), 'Downloads', 'QRPrintJobs')
+        temp_dir = os.path.join(os.path.expanduser('~'), 'Downloads', 'PrintWithQRJobs')
         if not os.path.exists(temp_dir):
             os.makedirs(temp_dir)
             
@@ -731,7 +731,7 @@ def disconnect():
     print("Disconnected from server.")
 
 if __name__ == "__main__":
-    print("Starting QRPrintPlatform PC Agent...")
+    print("Starting PrintWithQR PC Agent...")
     try:
         sio.connect(SOCKET_URL)
         sio.wait()
