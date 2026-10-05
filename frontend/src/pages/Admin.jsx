@@ -1,3 +1,4 @@
+import { platform } from '../utils/platform';
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
@@ -36,12 +37,7 @@ const Admin = () => {
     setLoading(true);
     setError('');
     try {
-      const { data, error: fetchErr } = await supabase
-        .from('shops')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (fetchErr) throw fetchErr;
+      const { shops: data } = await platform('admin', {}, true, 'GET');
       setShops(data || []);
     } catch (err) {
       console.error('Error fetching shops:', err);
@@ -55,23 +51,11 @@ const Admin = () => {
     const checkAdminAuth = async () => {
       setCheckingAuth(true);
       try {
-        const storedAdminSession = sessionStorage.getItem('adminSession') || localStorage.getItem('adminSession');
-        if (storedAdminSession === 'true') {
-          setIsAdminUser(true);
-          fetchShops();
-          setCheckingAuth(false);
-          return;
-        }
-
         const { data: { user } } = await supabase.auth.getUser();
         if (user) {
-          const { data: currentShop } = await supabase
-            .from('shops')
-            .select('is_admin')
-            .eq('id', user.id)
-            .single();
+          const account = await platform('me', {}, true, 'GET');
 
-          if (currentShop && currentShop.is_admin) {
+          if (account.isAdmin) {
             setIsAdminUser(true);
             localStorage.setItem('adminSession', 'true');
             fetchShops();
@@ -111,13 +95,9 @@ const Admin = () => {
         throw new Error(authErr?.message || 'Invalid Admin Credentials.');
       }
 
-      const { data: currentShop } = await supabase
-        .from('shops')
-        .select('is_admin')
-        .eq('id', authData.user.id)
-        .single();
+      const account = await platform('me', {}, true, 'GET');
 
-      if (currentShop && currentShop.is_admin) {
+      if (account.isAdmin) {
         sessionStorage.setItem('adminSession', 'true');
         localStorage.setItem('adminSession', 'true');
         localStorage.setItem('isAdmin', 'true');
@@ -180,16 +160,7 @@ const Admin = () => {
         newExpiry.setDate(newExpiry.getDate() + 30);
       }
 
-      const { error: updateErr } = await supabase
-        .from('shops')
-        .update({ 
-          subscription_status: newStatus, 
-          is_paid: newIsPaid,
-          subscription_expires_at: newExpiry
-        })
-        .eq('id', shop.id);
-
-      if (updateErr) throw updateErr;
+      await platform('admin_update', { shopId: shop.id, fields: { subscription_status: newStatus, is_paid: newIsPaid, subscription_expires_at: newExpiry } });
 
       // Update state local
       setShops(prev => prev.map(s => {
@@ -217,16 +188,7 @@ const Admin = () => {
 
       baseDate.setDate(baseDate.getDate() + days);
 
-      const { error: updateErr } = await supabase
-        .from('shops')
-        .update({ 
-          subscription_expires_at: baseDate,
-          subscription_status: 'active',
-          is_paid: 1
-        })
-        .eq('id', renewingShop.id);
-
-      if (updateErr) throw updateErr;
+      await platform('admin_update', { shopId: renewingShop.id, fields: { subscription_expires_at: baseDate, subscription_status: 'active', is_paid: 1 } });
 
       setShops(prev => prev.map(s => {
         if (s.id === renewingShop.id) {
@@ -320,10 +282,6 @@ const Admin = () => {
         throw new Error(result.error || 'Failed to delete shop via API');
       }
 
-      // We still run client-side fallback just in case the API had issues but didn't throw
-      await supabase.from('orders').delete().eq('shop_id', shopIdToDelete);
-      await supabase.from('shops').delete().eq('id', shopIdToDelete);
-      
       setShops(prev => prev.filter(s => s.id !== shopIdToDelete));
       setShowDeleteConfirm(null);
       alert(`Shop account (${shopNameToDelete}) and all associated orders/data have been permanently deleted. The user can now register fresh as a new shop owner.`);
@@ -334,7 +292,8 @@ const Admin = () => {
     }
   };
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    await supabase.auth.signOut({ scope: 'local' });
     sessionStorage.removeItem('adminSession');
     localStorage.removeItem('adminSession');
     localStorage.removeItem('isAdmin');

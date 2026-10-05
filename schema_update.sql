@@ -1,3 +1,4 @@
+-- Historical incremental reference. Fresh installations use supabase/migrations/.
 -- Update Shops Table with Free Trial and Bot Protection columns
 ALTER TABLE public.shops 
 ADD COLUMN IF NOT EXISTS printer_model TEXT,

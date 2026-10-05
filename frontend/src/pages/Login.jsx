@@ -1,3 +1,4 @@
+import { platform } from '../utils/platform';
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { Phone, Lock, Printer, AlertCircle, Eye, EyeOff, ArrowRight } from 'lucide-react';
@@ -12,13 +13,14 @@ const Login = () => {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
-  // Auto-redirect if already logged in
+  // Validate the session; a stale local flag must not create a dashboard/login loop.
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    const shopId = localStorage.getItem('shopId');
-    if (token && shopId) {
-      navigate('/dashboard');
-    }
+    let active = true;
+    supabase.auth.getUser().then(({ data, error }) => {
+      if (active && !error && data?.user && localStorage.getItem('shopId')) navigate('/dashboard', { replace: true });
+      else if (active) localStorage.removeItem('token');
+    }).catch(() => { if (active) localStorage.removeItem('token'); });
+    return () => { active = false; };
   }, [navigate]);
 
   const handleSubmit = async (e) => {
@@ -30,6 +32,8 @@ const Login = () => {
 
     setLoading(true);
     setError('');
+    // Load the dashboard code while the sign-in request is in flight.
+    void import('./Dashboard').catch(() => {});
 
     try {
       const cleanPhone = phone.replace(/\D/g, '');
@@ -49,60 +53,11 @@ const Login = () => {
         throw new Error('No user profile found.');
       }
 
-      const shopId = authData.user.id;
-
-      // 2. Fetch the corresponding record from the public.shops table
-      let { data: shop, error: dbError } = await supabase
-        .from('shops')
-        .select('*')
-        .eq('id', shopId)
-        .maybeSingle();
-
-      // Auto-healing fallback: If user authenticated via Supabase Auth but shop profile row is missing
-      if (!shop) {
-        const shopName = authData.user?.user_metadata?.name || 'Print Shop';
-        const newShop = {
-          id: shopId,
-          name: shopName,
-          phone: cleanPhone,
-          address: 'Shop Counter',
-          bw_rate: 5.0,
-          color_rate: 10.0,
-          color_enabled: 1,
-          is_paid: 0,
-          subscription_status: 'free',
-          subscription_plan: 'free',
-          free_prints_allowed: 10,
-          free_prints_used: 0,
-          subscription_expires_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
-        };
-
-        const { error: upsertErr } = await supabase.from('shops').upsert(newShop);
-        if (!upsertErr) {
-          shop = newShop;
-        } else {
-          // If upsert failed, check if shop row exists under phone number
-          const { data: phoneShop } = await supabase
-            .from('shops')
-            .select('*')
-            .eq('phone', cleanPhone)
-            .maybeSingle();
-          if (phoneShop) {
-            shop = phoneShop;
-          }
-        }
-      }
-
-      if (!shop) {
-        throw new Error('Shop registration details not found.');
-      }
-
-      // Auto-populate phone in database if missing
-      if (cleanPhone && (!shop.phone || shop.phone.trim() === '')) {
-        await supabase.from('shops').update({ phone: cleanPhone }).eq('id', shopId);
-        shop.phone = cleanPhone;
-      }
-
+      const account = await platform('me', {}, true, 'GET');
+      const shop = account.shops[0];
+      if (!shop && !account.isAdmin) throw new Error('No registered business is attached to this account. Contact support.');
+      if (!shop) { navigate('/admin'); return; }
+      shop.is_admin = account.isAdmin;
       const expiryDate = shop.subscription_expires_at ? new Date(shop.subscription_expires_at) : null;
       const isExpired = expiryDate && expiryDate < new Date();
       const isFreePlan = shop.subscription_status === 'free';

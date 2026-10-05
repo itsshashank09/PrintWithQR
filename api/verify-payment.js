@@ -1,3 +1,4 @@
+import { provisionOwner, isAdmin } from './_lib/security.js';
 import { createClient } from '@supabase/supabase-js';
 import crypto from 'crypto';
 
@@ -10,6 +11,8 @@ function setCors(req, res) {
     process.env.ALLOWED_ORIGIN,
     'https://www.printwithqr.in',
     'https://printwithqr.in',
+    'https://printwithqr.com',
+    'https://www.printwithqr.com',
     'http://localhost:5173',
     'http://localhost:3000'
   ].filter(Boolean);
@@ -218,6 +221,8 @@ export default async function handler(req, res) {
         return res.status(500).json({ error: 'Failed to initialize shop record in database.' });
       }
 
+      await provisionOwner(adminClient,userId);
+
     } else {
       // Flow B: Existing Shop Payment / Renewal / Upgrade
       // MANDATORY Bearer Token Authentication
@@ -235,14 +240,8 @@ export default async function handler(req, res) {
 
       // If reqShopId is specified and differs from authenticated user, verify caller is an authorized admin
       if (reqShopId && String(reqShopId).trim() !== authUser.id) {
-        const { data: adminShop } = await adminClient
-          .from('shops')
-          .select('is_admin')
-          .eq('id', authUser.id)
-          .maybeSingle();
-
-        if (!adminShop?.is_admin) {
-          return res.status(403).json({ error: 'Forbidden: You do not have permission to apply payments or modify subscriptions for another shop.' });
+        if (!await isAdmin(adminClient,authUser.id)) {
+          return res.status(403).json({error:'Forbidden: You cannot renew another business.'});
         }
         targetShopId = String(reqShopId).trim();
       } else {

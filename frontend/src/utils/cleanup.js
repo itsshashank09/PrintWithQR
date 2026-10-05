@@ -23,6 +23,8 @@ export const syncOrdersToLocalStorage = (shopId, newOrders) => {
       if (o && o.id) {
         const orderCopy = { ...o };
         delete orderCopy.file_path; // Remove file link so raw document is never saved in browser
+        delete orderCopy.customer_access_hash;
+        delete orderCopy.file_name;
         historyMap.set(o.id, orderCopy);
       }
     });
@@ -40,4 +42,3 @@ export const triggerAutoCleanup = (shopId, currentOrders = []) => {
     syncOrdersToLocalStorage(shopId, currentOrders);
   }
 };
-

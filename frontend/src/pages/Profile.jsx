@@ -1,3 +1,5 @@
+import { platform } from '../utils/platform';
+import LoadingSpinner from '../components/LoadingSpinner';
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { User, Phone, MapPin, Printer, Lock, ChevronLeft, Landmark, AlertCircle, Save, Eye, EyeOff, ShieldCheck, Zap, Calendar, Clock, ArrowRight } from 'lucide-react';
@@ -49,60 +51,11 @@ const Profile = () => {
         return;
       }
 
-      const activeShopId = user.id;
-      const userPhone = user.user_metadata?.phone || localStorage.getItem('saved_phone') || '';
-      let shopData = null;
-
-      // 1. Try querying public.shops by user ID
-      const { data: shopById } = await supabase
-        .from('shops')
-        .select('*')
-        .eq('id', activeShopId)
-        .maybeSingle();
-
-      if (shopById) {
-        shopData = shopById;
-      } else if (userPhone) {
-        // 2. Fallback query by phone number
-        const { data: shopByPhone } = await supabase
-          .from('shops')
-          .select('*')
-          .eq('phone', userPhone.replace(/\D/g, ''))
-          .maybeSingle();
-
-        if (shopByPhone) {
-          shopData = shopByPhone;
-          await supabase.from('shops').update({ id: activeShopId }).eq('phone', userPhone.replace(/\D/g, ''));
-        }
-      }
-
-      // 3. Self-healing fallback: If shop row doesn't exist yet, insert row automatically
-      if (!shopData) {
-        const defaultShopName = user.user_metadata?.name || localStorage.getItem('shopName') || 'Print Shop';
-        const defaultPhone = userPhone.replace(/\D/g, '');
-        
-        const newShopRow = {
-          id: activeShopId,
-          name: defaultShopName,
-          phone: defaultPhone,
-          address: 'Not Provided',
-          bw_rate: 5.0,
-          color_rate: 10.0,
-          color_enabled: 1,
-          is_paid: 1,
-          subscription_status: 'active',
-          subscription_expires_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
-        };
-
-        const { data: createdShop } = await supabase
-          .from('shops')
-          .upsert(newShopRow)
-          .select()
-          .maybeSingle();
-
-        shopData = createdShop || newShopRow;
-      }
-
+      const account = await platform('me', {}, true, 'GET');
+      const shopData = account.shops.find(s => s.id === localStorage.getItem('shopId')) || account.shops[0];
+      if (!shopData) throw new Error('Business registration is unavailable. Please contact support.');
+      const activeShopId = shopData.id;
+      const userPhone = shopData.phone || '';
       // Set state safely
       localStorage.setItem('shopId', activeShopId);
       setName(shopData.name || '');
@@ -169,7 +122,7 @@ const Profile = () => {
 
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      const activeShopId = user?.id || localStorage.getItem('shopId');
+      const activeShopId = localStorage.getItem('shopId');
 
       if (!activeShopId) {
         navigate('/login');
@@ -194,23 +147,12 @@ const Profile = () => {
 
       const cleanPhone = phone.replace(/\D/g, '');
 
-      // 2. Update shop fields in public.shops table
-      const { error: dbError } = await supabase
-        .from('shops')
-        .update({
-          name,
-          phone: cleanPhone,
-          address: address && address.trim() !== '' ? address : 'Not Provided',
-          printer_model: printerModel ? printerModel.trim() : '',
-          bw_rate: parseFloat(bwRate) || 0,
-          color_rate: parseFloat(colorRate) || 0,
-          color_enabled: colorEnabled ? 1 : 0
-        })
-        .eq('id', activeShopId);
-
-      if (dbError) {
-        throw new Error(dbError.message || 'Failed to update shop profile.');
-      }
+      const { data: { session } } = await supabase.auth.getSession();
+      const response = await fetch('/api/update-shop', { method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + session.access_token },
+        body: JSON.stringify({ shopId: activeShopId, shopDetails: { name, phone: cleanPhone, address: address.trim() || 'Not Provided', printer_model: printerModel.trim(), bw_rate: Number(bwRate), color_rate: Number(colorRate), color_enabled: colorEnabled ? 1 : 0 } }) });
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error || 'Failed to update business details.');
 
       localStorage.setItem('shopName', name);
       localStorage.setItem('saved_phone', cleanPhone);
@@ -236,7 +178,7 @@ const Profile = () => {
       </header>
 
       {loading ? (
-        <div style={{ textAlign: 'center', padding: '50px' }}>Loading settings...</div>
+        <LoadingSpinner label="Opening settings" />
       ) : (
         <div className="neo-card" style={{ padding: '35px 30px' }}>
           {error && (

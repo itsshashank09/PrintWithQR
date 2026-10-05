@@ -1,3 +1,4 @@
+import { authorizeShop } from './_lib/security.js';
 import { createClient } from '@supabase/supabase-js';
 
 const supabaseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
@@ -9,6 +10,8 @@ function setCors(req, res) {
     process.env.ALLOWED_ORIGIN,
     'https://www.printwithqr.in',
     'https://printwithqr.in',
+    'https://printwithqr.com',
+    'https://www.printwithqr.com',
     'http://localhost:5173',
     'http://localhost:3000'
   ].filter(Boolean);
@@ -71,18 +74,8 @@ export default async function handler(req, res) {
       return res.status(401).json({ error: 'Invalid or expired authentication session.' });
     }
 
-    // Check authorization: caller must be the shop owner or a verified administrator
-    if (user.id !== shopId) {
-      const { data: callerShop } = await adminClient
-        .from('shops')
-        .select('is_admin')
-        .eq('id', user.id)
-        .maybeSingle();
-
-      if (!callerShop?.is_admin) {
-        return res.status(403).json({ error: 'Forbidden: You do not have permission to delete this shop account.' });
-      }
-    }
+    try { await authorizeShop(adminClient,user.id,shopId,true); }
+    catch(error) { return res.status(error.status || 503).json({error:error.message}); }
 
     // 1. Delete all orders associated with this shop
     const { error: ordersErr } = await adminClient

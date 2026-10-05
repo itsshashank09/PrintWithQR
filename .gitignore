@@ -17,3 +17,13 @@ backend/uploads/
 
 .vercel
 .env*
+!.env.example
+
+# Local development tools and scratch reports
+.tools/
+
+# Owner-provided handover contains plaintext service credentials.
+/PRINTWITHQR_COMPLETE_KNOWLEDGE_BASE.txt
+
+# Supabase CLI cache
+supabase/.temp/

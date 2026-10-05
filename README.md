@@ -1,79 +1,82 @@
 # PrintWithQR
 
-PrintWithQR is a modern, contactless printing platform that bridges the gap between local print shops and their customers. 
+A web app for sending documents to a local print shop through its QR code. Customers choose files and print settings in the browser; the shop handles the queue from its dashboard.
 
-By simply scanning a QR code at a participating shop, customers can instantly upload documents, configure print settings (B&W/Color, page ranges), and place print orders directly from their mobile browser without installing any apps.
+**[Live site](https://www.printwithqr.in/)** · [Setup](docs/setup.md) · [Architecture](docs/architecture.md) · [Database](supabase/README.md) · [Verification](docs/verification.md)
 
-## 🚀 Features
+![PrintWithQR landing page](docs/screenshots/landing.png)
 
-### For Shop Owners (Admins)
-- **Instant Setup**: Register your shop and instantly get a unique QR Code poster to print and stick on your counter.
-- **Order Dashboard**: A real-time dashboard to manage incoming print requests, view files, and mark orders as complete.
-- **Subscription Plans**: 
-  - **Free Trial**: New shops get a limited free trial (10 prints) to test the platform.
-  - **Premium Plans**: ₹99/month or ₹599/year for unlimited prints, custom shop branding, and full analytics.
-- **Shop Configuration**: Set custom rates for B&W and Color printing.
+## What it does
 
-### For Customers
-- **No App Required**: Works entirely in the mobile web browser.
-- **Easy Uploads**: Support for PDF, PNG, JPG, and JPEG files (up to 100MB per file).
-- **Print Preview**: Built-in document previewer to review pages before ordering.
-- **Custom Print Ranges**: Choose all pages, odd/even only, or a custom range (e.g., `1-3, 5, 7-10`).
-- **Fraud Prevention**: Smart device-fingerprinting prevents abuse of the free trial system.
+- Gives each shop a QR link for PDFs, PNG/JPEG images and ZIP archives, with a 50 MB limit per file.
+- Previews documents and offers page ranges, colour, paper size and image layout options.
+- Uses private Storage and exact-file upload capabilities; shop downloads require verified membership and short-lived URLs.
+- Calculates PDF page counts and prices on the server. ZIP prices stay pending for the shop to confirm.
+- Shows a receipt for the complete customer batch and live queue updates through Supabase Realtime.
+- Supports shop accounts, print rates, free trial quotas and Razorpay subscription payments.
+- Expires waiting jobs after ten minutes and removes eligible files through an authenticated cleanup worker while retaining order metadata.
 
-## 🛠 Tech Stack
+The shop still fulfils the order. There is no desktop printer agent or direct printer integration.
 
-- **Frontend**: React.js, Vite, Context API
-- **Styling**: Vanilla CSS, Modern Glassmorphism, CSS Animations
-- **Backend / Database**: [Supabase](https://supabase.com/) (PostgreSQL, Authentication, Realtime Subscriptions, Storage)
-- **Deployment**: [Vercel](https://vercel.com/) (Frontend Hosting)
-- **Security**: FingerprintJS (Device Fingerprinting & Anti-Fraud)
+## Stack
 
-## 💻 Running Locally
+| Part | Technologies |
+| --- | --- |
+| Interface | React, JavaScript, React Router, Vite, CSS, Lucide |
+| API | JavaScript serverless handlers on Vercel |
+| Data | Supabase Postgres, Auth, private Storage and Realtime |
+| Documents | PDF.js, pdf-lib, zip.js and browser image tools |
+| Payments | Razorpay Checkout and server-side signature verification |
+| Public pages | Build-generated marketing pages, metadata and sitemap |
 
-### Prerequisites
-- Node.js (v18+)
-- A Supabase Project (with URL and Anon Key)
+## Run locally
 
-### Setup Instructions
+Use Node.js 24 (`.nvmrc`) and a separate development Supabase project.
 
-1. **Clone the repository**
-   ```bash
-   git clone https://github.com/itsshashank09/PrintWithQR.git
-   cd PrintWithQR
-   ```
+```sh
+git clone https://github.com/itsshashank09/PrintWithQR.git
+cd PrintWithQR
+npm run setup
+npm run dev:ui
+```
 
-2. **Install dependencies**
-   Navigate into the frontend directory and install the packages:
-   ```bash
-   cd frontend
-   npm install
-   ```
+This starts the interface on the URL Vite prints. Authenticated workflows also need the database baseline, environment variables and serverless API described in [setup](docs/setup.md). `npm run dev` starts the Vercel development environment.
 
-3. **Environment Variables**
-   Create a `.env` file in the `frontend` folder and add your Supabase credentials:
-   ```env
-   VITE_SUPABASE_URL=your_supabase_project_url
-   VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
-   ```
+```sh
+npm run check                # API parity, lint, offline tests, SEO and build
+npm run test:integration     # Synthetic workflows in a disposable Supabase project
+```
 
-4. **Start the Development Server**
-   ```bash
-   npm run dev
-   ```
-   The app will be available at `http://localhost:5173`.
+## Code worth reading
 
-## 🗄️ Database Schema
+- [`api/platform.js`](api/platform.js): verified shop membership, upload intents, customer receipts and document access.
+- [`api/_lib/orders.js`](api/_lib/orders.js): uploaded-file inspection and server-selected prices.
+- [`supabase/migrations/20261005000000_application_baseline.sql`](supabase/migrations/20261005000000_application_baseline.sql): schema, RLS and transactional order/quota updates.
+- [`api/_lib/queue-cleanup.js`](api/_lib/queue-cleanup.js): queue expiry and private-file removal.
+- [`frontend/src/pages/Upload.jsx`](frontend/src/pages/Upload.jsx) and [`frontend/src/components/PrintQueue.jsx`](frontend/src/components/PrintQueue.jsx): customer and shop workflows.
 
-The platform relies on a PostgreSQL schema managed by Supabase. To set up the database, run the SQL commands found in `schema_update.sql` in your Supabase SQL Editor. 
-Key tables include:
-- `shops` (Shop details, owner references, subscription status)
-- `orders` (Print jobs, file URLs, customer names, status)
-- `subscriptions` (Payment tracking and plan details)
-- `device_logs` (Security and free-trial tracking)
+## Structure
 
-## 🔒 Security & Rate Limiting
-To prevent abuse of the "Free Trial" mode, PrintWithQR implements robust device fingerprinting. The platform generates a unique hardware hash for the customer's device. If a customer attempts to place an order, the system checks the `device_logs` table to ensure they haven't exceeded the free trial limits, even if they clear their browser cache or use Incognito Mode!
+```text
+api/                   Serverless handlers for a repository-root deployment
+frontend/
+  api/                 Matching handlers for a frontend-root deployment
+  src/                 Customer, shop and admin interface
+  seo/                 Public page content and metadata
+  scripts/             Marketing build
+supabase/migrations/   Fresh-install application baseline
+supabase/history/      Earlier production migrations, kept as reference
+scripts/               Development tools and isolated integration tests
+tests/                 Offline workflow and authorization checks
+docs/                  Setup, architecture, verification and source recovery
+```
 
-## 📜 License
-This project is proprietary and intended for commercial deployment under the PrintWithQR brand.
+The API copies are checked by `npm run check:api`. [Source reconciliation](docs/source-reconciliation.md) records how this repository was brought into line with the newer deployed app. Main-branch automatic deployment is disabled; production releases use the manual workflow.
+
+## Current limits
+
+The database restore and core authenticated workflows have been tested with synthetic data. Razorpay checkout, SMTP, full browser journeys and production load have not been covered by those integration tests. File retention depends on a correctly configured worker; browser fingerprinting is an abuse signal, not a guarantee of identity. [Verification](docs/verification.md) describes the checks and their scope.
+
+## Licence
+
+The project is proprietary, as stated in the original repository documentation. No open-source licence is granted by this README.

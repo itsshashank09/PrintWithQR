@@ -3,6 +3,7 @@
    ========================================================================== */
 
 .skeuo-toggle-wrapper {
+  min-height: 44px;
   display: inline-flex;
   align-items: center;
   gap: 12px;
@@ -32,6 +33,7 @@
    ========================================================================== */
 
 .skeuo-toggle-track {
+  flex-shrink: 0;
   position: relative;
   display: inline-flex;
   align-items: center;

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Zap, ArrowRight, Sparkles, Send, Check } from 'lucide-react';
+import { Zap, ArrowRight, Sparkles, Send } from 'lucide-react';
 import './buttons.css';
 
 /**
@@ -12,7 +12,8 @@ export function FloatingDotsButton({
   onClick,
   disabled = false,
   className = '',
-  style
+  style,
+  title
 }) {
   return (
     <button
@@ -21,6 +22,7 @@ export function FloatingDotsButton({
       onClick={onClick}
       disabled={disabled}
       style={style}
+      title={title}
     >
       <div className="points_wrapper" aria-hidden="true">
         <i className="point" />
@@ -88,28 +90,7 @@ export function GradientBeamButton({
   className = '',
   style
 }) {
-  return (
-    <button
-      type={type}
-      className={`btn-gradient-beam ${className}`}
-      onClick={onClick}
-      disabled={disabled}
-      style={style}
-    >
-      <div className="btn-beam-spin-container" aria-hidden="true">
-        <div className="btn-beam-spin" />
-        <div className="btn-beam-mask" />
-      </div>
-      <div className="btn-beam-inner">
-        <div className="btn-beam-dots" aria-hidden="true" />
-        <div className="btn-beam-glow" aria-hidden="true" />
-      </div>
-      <span className="btn-beam-content">
-        {children}
-        {icon !== undefined ? icon : <ArrowRight className="btn-beam-icon" size={16} />}
-      </span>
-    </button>
-  );
+  return <FloatingDotsButton type={type} className={className} onClick={onClick} disabled={disabled} style={style} icon={icon !== undefined ? icon : <ArrowRight size={16} />}>{children}</FloatingDotsButton>;
 }
 
 /**

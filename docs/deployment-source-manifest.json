@@ -1,0 +1,346 @@
+{
+  "recordedAt": "2026-10-05",
+  "deploymentId": "dpl_AYXzwYrXnjUg9iJ3AeEsKrr5eicq",
+  "source": "cli",
+  "metadataGitSha": "ea93d43019d7622ece067aac76353e65b2e6b732",
+  "matchingSourceFiles": 84,
+  "comparison": "Vercel deployment file IDs against the owner-provided saved source before recovery changes",
+  "files": [
+    {
+      "path": "frontend/.npmrc",
+      "deploymentSha1": "01b8bc6e6aa772c39fdbc0552ceb2065726496ee"
+    },
+    {
+      "path": "frontend/.oxlintrc.json",
+      "deploymentSha1": "aee140772126e9d3fc717cd1073977262d910d64"
+    },
+    {
+      "path": "frontend/.vercelignore",
+      "deploymentSha1": "4802494aff06e3abf8f72d6117c0988090ae4b69"
+    },
+    {
+      "path": "frontend/README.md",
+      "deploymentSha1": "7ef8d300bd047ec2d685919c31d8a873305a14fc"
+    },
+    {
+      "path": "frontend/api/_lib/archives.js",
+      "deploymentSha1": "9815cec21a58648b10db63f39a251097a0893369"
+    },
+    {
+      "path": "frontend/api/_lib/file-access.js",
+      "deploymentSha1": "f2378a8ddf87c13de72a7c1c1bd2786fd0bc8a73"
+    },
+    {
+      "path": "frontend/api/_lib/orders.js",
+      "deploymentSha1": "0a30a383ff4250fe45d7cfb0f23afdc6880e8003"
+    },
+    {
+      "path": "frontend/api/_lib/queue-cleanup.js",
+      "deploymentSha1": "023a978036c1b3bbe712a330c51140ddff6a9659"
+    },
+    {
+      "path": "frontend/api/_lib/queue-clock.js",
+      "deploymentSha1": "05ea4965214607a386710851af0fe88f6df90fa9"
+    },
+    {
+      "path": "frontend/api/_lib/security.js",
+      "deploymentSha1": "b889d2ab23e3287225586f3fc0794db0192d051a"
+    },
+    {
+      "path": "frontend/api/cleanup.js",
+      "deploymentSha1": "c4eab6b020571c3cebc63d7119a3ed8b1ad099e5"
+    },
+    {
+      "path": "frontend/api/create-order.js",
+      "deploymentSha1": "fecb823881dcd93bdb853c9d65a57b8a56a519a4"
+    },
+    {
+      "path": "frontend/api/create-print-order.js",
+      "deploymentSha1": "2322704e770fb1d4b806dcf37aa90f33e7c8ecbe"
+    },
+    {
+      "path": "frontend/api/create-subscription-order.js",
+      "deploymentSha1": "cf1188f9d65105f549d86c00cd779716e0e35a32"
+    },
+    {
+      "path": "frontend/api/delete-shop.js",
+      "deploymentSha1": "a3618b69e51702f148718a1d255ea337eaa4dd91"
+    },
+    {
+      "path": "frontend/api/login.js",
+      "deploymentSha1": "db6bd0b426d2e92f331e2be896420e1d9c65aad5"
+    },
+    {
+      "path": "frontend/api/platform.js",
+      "deploymentSha1": "5358104b45eea62b0d7cb674d0fb69392df9d970"
+    },
+    {
+      "path": "frontend/api/register-shop.js",
+      "deploymentSha1": "3df6030a627bd13d07e98a9b96cb62ac6d00e0e9"
+    },
+    {
+      "path": "frontend/api/update-shop.js",
+      "deploymentSha1": "805c9568331d84f6e5e7f4fb890bc4b65217fae2"
+    },
+    {
+      "path": "frontend/api/verify-payment.js",
+      "deploymentSha1": "d8693ddb41e2422ee3fccc2f2e543a0dedb5229e"
+    },
+    {
+      "path": "frontend/api/verify-subscription-payment.js",
+      "deploymentSha1": "c71a52bed3a06e02c1a85c9ac9daaa0a6671aabc"
+    },
+    {
+      "path": "frontend/api/verify.js",
+      "deploymentSha1": "0e55d679c73fe0a58a1d8a7faa7c9bb09aa91029"
+    },
+    {
+      "path": "frontend/index.html",
+      "deploymentSha1": "f8d4bd87b7f6133f2ae18389006a333ac12f3c62"
+    },
+    {
+      "path": "frontend/middleware.js",
+      "deploymentSha1": "1298af29a2951684274a52087fcaccd902334ee6"
+    },
+    {
+      "path": "frontend/package-lock.json",
+      "deploymentSha1": "49f870b00d5fabb975ead870feab5d4ee404d44f"
+    },
+    {
+      "path": "frontend/package.json",
+      "deploymentSha1": "e66dce2e116b0243a607e6a8e01e578f75d8c536"
+    },
+    {
+      "path": "frontend/public/apple-touch-icon.png",
+      "deploymentSha1": "dc22e421027ae88d2cc56cf4e73a2125a75e89ae"
+    },
+    {
+      "path": "frontend/public/design-system.css",
+      "deploymentSha1": "db1b602b47a7147c6b52b875a99b481c76ef993b"
+    },
+    {
+      "path": "frontend/public/favicon-48x48.png",
+      "deploymentSha1": "f47800e90b8b9472c73ac0d7fff22246c4085f5e"
+    },
+    {
+      "path": "frontend/public/favicon.ico",
+      "deploymentSha1": "126a3880c761abbfc13d95a1f0ce3d12dbd4960d"
+    },
+    {
+      "path": "frontend/public/favicon.svg",
+      "deploymentSha1": "cbbb0adcfbec6d62b2e71ab2fd6bae44fb21832d"
+    },
+    {
+      "path": "frontend/public/icons.svg",
+      "deploymentSha1": "f9897ac25e13de9ea601d2f1ac5d9353dfbefcda"
+    },
+    {
+      "path": "frontend/public/logo192.png",
+      "deploymentSha1": "68e642a32e60c0439ba1e8004c89e74c3f67a45f"
+    },
+    {
+      "path": "frontend/public/logo512.png",
+      "deploymentSha1": "bc9182184d6f521c729de0c000dc3e5f5da406d9"
+    },
+    {
+      "path": "frontend/public/marketing-theme.js",
+      "deploymentSha1": "21788585d1185bf3bbb9ee9be7076e4a9b92506b"
+    },
+    {
+      "path": "frontend/public/marketing.css",
+      "deploymentSha1": "7a06eb5cf1987bc287017085dc530c162273f9e0"
+    },
+    {
+      "path": "frontend/public/print.html",
+      "deploymentSha1": "e181d418d68322600ff70dbeceb4988a014651f1"
+    },
+    {
+      "path": "frontend/public/qr_poster_template.png",
+      "deploymentSha1": "bcabc52319e79f01a8dbe00c3bb015d14dfb59d2"
+    },
+    {
+      "path": "frontend/scripts/build-marketing.mjs",
+      "deploymentSha1": "74e79605d071c5f7ec5b7f3b4c08bdd2c017384c"
+    },
+    {
+      "path": "frontend/scripts/diag-register.mjs",
+      "deploymentSha1": "962e0069695314f678ecc2ed69daba846036bac4"
+    },
+    {
+      "path": "frontend/scripts/diag-schema.mjs",
+      "deploymentSha1": "e84c902e26981c639632d011bb9e0424308d4c13"
+    },
+    {
+      "path": "frontend/scripts/diag-tables.mjs",
+      "deploymentSha1": "8c382745168ae4823335445f530e3d1e5d52ee85"
+    },
+    {
+      "path": "frontend/scripts/supabase-smoke.mjs",
+      "deploymentSha1": "5715104bafc75afd27f8a3aa2d5cb833862fdaf0"
+    },
+    {
+      "path": "frontend/seo/content.mjs",
+      "deploymentSha1": "c9f73951e113d10655cab3c8316bef113550637b"
+    },
+    {
+      "path": "frontend/seo/render.mjs",
+      "deploymentSha1": "442528044676df1bc6c4393053314467fe2bbecd"
+    },
+    {
+      "path": "frontend/seo/routing.mjs",
+      "deploymentSha1": "24c20b5dacd5085a8126d4b99b16e7be2f415392"
+    },
+    {
+      "path": "frontend/seo/site.mjs",
+      "deploymentSha1": "c48235c1a3f006936e4e3c2f577ee805167ee66c"
+    },
+    {
+      "path": "frontend/src/App.css",
+      "deploymentSha1": "d902f6d49b071abe35213b2b06d39c9537726f47"
+    },
+    {
+      "path": "frontend/src/App.jsx",
+      "deploymentSha1": "71a1941119ff57a2b5aa26d77da259d0f890ab81"
+    },
+    {
+      "path": "frontend/src/assets/hero.png",
+      "deploymentSha1": "013c992c30720bf156b62bd4c8a2760e71fe842a"
+    },
+    {
+      "path": "frontend/src/components/LoadingSpinner.jsx",
+      "deploymentSha1": "9efa6e1e1cb4b095f66ec52dfed2640044843555"
+    },
+    {
+      "path": "frontend/src/components/PrintQueue.jsx",
+      "deploymentSha1": "b0967295621be08bfa7eadf35cfe4ab272f3bc9b"
+    },
+    {
+      "path": "frontend/src/components/RectangleButtons.jsx",
+      "deploymentSha1": "8ec513e2bd93c376013f6b19777e355c48f5452d"
+    },
+    {
+      "path": "frontend/src/components/SkeuomorphicToggle.css",
+      "deploymentSha1": "18e0a54ffbf33495f5871786f3ce3846ad08de18"
+    },
+    {
+      "path": "frontend/src/components/SkeuomorphicToggle.jsx",
+      "deploymentSha1": "fcc486c9d0a3681d10bad60c69e90a627d89c086"
+    },
+    {
+      "path": "frontend/src/components/ThemeToggle.jsx",
+      "deploymentSha1": "1233cc907c6654b05a09465bfbd3f15b14f123b1"
+    },
+    {
+      "path": "frontend/src/components/UploadFileDetails.jsx",
+      "deploymentSha1": "1d5c36907b4bbc3916bfa7ea37bde78d540e1c05"
+    },
+    {
+      "path": "frontend/src/components/UploadProgress.jsx",
+      "deploymentSha1": "7482b120095a810d500f754f557dca70afe2b063"
+    },
+    {
+      "path": "frontend/src/components/buttons.css",
+      "deploymentSha1": "75fca83a5c4ac3d842831ca5533f77ce9b3a5e9d"
+    },
+    {
+      "path": "frontend/src/customer.css",
+      "deploymentSha1": "37439b1729e06eff087e65a9a2a12fc47b87c88c"
+    },
+    {
+      "path": "frontend/src/index.css",
+      "deploymentSha1": "ec47589ccf6c4ce45d49aab8d61bdcdf523a7e4d"
+    },
+    {
+      "path": "frontend/src/main.jsx",
+      "deploymentSha1": "143cd7859c0fec24a24bf4fefb4c7ff6fa5acba3"
+    },
+    {
+      "path": "frontend/src/pages/Admin.jsx",
+      "deploymentSha1": "c09245f890e0a53181de155a2cd5e424753404d6"
+    },
+    {
+      "path": "frontend/src/pages/Dashboard.jsx",
+      "deploymentSha1": "debf0b6e7cf6d4262a7f5906f60527ec16c0908d"
+    },
+    {
+      "path": "frontend/src/pages/Landing.jsx",
+      "deploymentSha1": "e4dfa4956b5a315fc1471a181e8c25d70025eedb"
+    },
+    {
+      "path": "frontend/src/pages/Login.jsx",
+      "deploymentSha1": "66322db3b8c0c72fc87204bed1a5fa5c101a2f74"
+    },
+    {
+      "path": "frontend/src/pages/OrderStatus.jsx",
+      "deploymentSha1": "6cbbcc86b83c5be73023ada4bd7b1f3ca7422d38"
+    },
+    {
+      "path": "frontend/src/pages/Payment.jsx",
+      "deploymentSha1": "0b83723a58cc3a276860118ea57614124d96adc4"
+    },
+    {
+      "path": "frontend/src/pages/Profile.jsx",
+      "deploymentSha1": "d9354852f42a94aea2f3accf66a68a8b9015eb1b"
+    },
+    {
+      "path": "frontend/src/pages/Register.jsx",
+      "deploymentSha1": "4b2626a88f7c0aea4daf783953ff0d2e08db89c7"
+    },
+    {
+      "path": "frontend/src/pages/Upload.jsx",
+      "deploymentSha1": "d0fcf5a60b8bff59900ce8af44a41b5488a7d016"
+    },
+    {
+      "path": "frontend/src/supabaseClient.js",
+      "deploymentSha1": "8afb66c62ead80f94e84d903a84fc67415976dea"
+    },
+    {
+      "path": "frontend/src/utils/cleanup.js",
+      "deploymentSha1": "9596ed83e19dfa2840e56c558c6a118a30f13b68"
+    },
+    {
+      "path": "frontend/src/utils/customerOrders.mjs",
+      "deploymentSha1": "973968421076e632ec7bace802e796d8341e3462"
+    },
+    {
+      "path": "frontend/src/utils/dashboardOrders.mjs",
+      "deploymentSha1": "2b7f8aad9cd005501656bac493f927adcb3b871b"
+    },
+    {
+      "path": "frontend/src/utils/deviceFingerprint.js",
+      "deploymentSha1": "30fa7300dfd7d535f540b5e0974cf04063c1e177"
+    },
+    {
+      "path": "frontend/src/utils/imageDownloads.mjs",
+      "deploymentSha1": "cd1cc834d4b070e4f987e909bf8e8757f232aab6"
+    },
+    {
+      "path": "frontend/src/utils/imagePrint.mjs",
+      "deploymentSha1": "47c330a1d309ae2604a22e78e1874bbc4e5da454"
+    },
+    {
+      "path": "frontend/src/utils/payment.js",
+      "deploymentSha1": "604fea7c8509cacf55ccce66fafcef47fc613cee"
+    },
+    {
+      "path": "frontend/src/utils/platform.js",
+      "deploymentSha1": "619cd5fa30844b7cb2ba1c16d7d31bfa16013894"
+    },
+    {
+      "path": "frontend/src/utils/upload.mjs",
+      "deploymentSha1": "b466ae6820992f0018f451e075724285b1ffa287"
+    },
+    {
+      "path": "frontend/src/utils/zip.mjs",
+      "deploymentSha1": "ddbaa490b897eddbf134cecda4be535b2ab9cfed"
+    },
+    {
+      "path": "frontend/vercel.json",
+      "deploymentSha1": "0c6d2184b646060077ce325c7e0fb70316273f8c"
+    },
+    {
+      "path": "frontend/vite.config.js",
+      "deploymentSha1": "5c581ce2c039fffd3204652c194f6d5d5cc6473c"
+    }
+  ]
+}

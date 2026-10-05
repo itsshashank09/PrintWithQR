@@ -7,8 +7,8 @@ const getEnvValue = (val) => {
   return val;
 };
 
-const supabaseUrl = getEnvValue(import.meta.env.VITE_SUPABASE_URL) || getEnvValue(process.env.SUPABASE_URL) || getEnvValue(process.env.NEXT_PUBLIC_SUPABASE_URL) || 'https://lvtmbhxjkuocohcdwclu.supabase.co';
-const supabaseAnonKey = getEnvValue(import.meta.env.VITE_SUPABASE_ANON_KEY) || getEnvValue(import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY) || getEnvValue(process.env.SUPABASE_ANON_KEY) || getEnvValue(process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY) || 'sb_publishable_JGCdrdQJx7x8Dq0LQJcM1Q_lsDTiD_9';
+const supabaseUrl = getEnvValue(import.meta.env.VITE_SUPABASE_URL);
+const supabaseAnonKey = getEnvValue(import.meta.env.VITE_SUPABASE_ANON_KEY) || getEnvValue(import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY);
 
 let client;
 
@@ -42,6 +42,7 @@ try {
             signUp: async () => ({ data: {}, error: new Error("Supabase Auth is not configured. Please add environment variables.") }),
             signInWithPassword: async () => ({ data: {}, error: new Error("Supabase Auth is not configured. Please add environment variables.") }),
             getUser: async () => ({ data: { user: null }, error: null }),
+            getSession: async () => ({ data: { session: null }, error: null }),
             updateUser: async () => ({ data: {}, error: new Error("Supabase Auth is not configured. Please add environment variables.") }),
             onAuthStateChange: () => ({ data: { subscription: { unsubscribe: () => {} } } })
           };

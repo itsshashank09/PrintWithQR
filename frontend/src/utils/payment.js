@@ -65,7 +65,7 @@ export const processSubscriptionPayment = async ({
       key: razorpayKey,
       amount: orderData.amount,
       currency: orderData.currency || 'INR',
-      name: 'PrintWithQR.in',
+      name: 'PrintWithQR',
       description: isYearly ? 'Annual Print Shop Plan (₹599/year)' : 'Monthly Print Shop Plan (₹99/month)',
       order_id: orderData.order_id,
       prefill: {
