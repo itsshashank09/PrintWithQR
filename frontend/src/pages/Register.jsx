@@ -42,7 +42,7 @@ const Register = () => {
   const handleNextStep = (e) => {
     e.preventDefault();
     if (!name || !phone || !password || !confirmPassword) {
-      setError('Name, phone number, and password are required.');
+      setError('Business name, phone number, and password are required.');
       return;
     }
     if (phone.length < 10) {
@@ -69,7 +69,7 @@ const Register = () => {
     try {
       const cleanPhone = phone.replace(/\D/g, '');
       if (!address.trim()) {
-        setError('Shop address is required.');
+        setError('Business address is required.');
         setLoading(false);
         return;
       }
@@ -110,9 +110,9 @@ const Register = () => {
       localStorage.setItem('shopId', result.shopId);
       localStorage.setItem('shopName', name.trim());
       localStorage.setItem('saved_phone', cleanPhone);
-      localStorage.setItem('token', `free_${result.shopId}_${Date.now()}`);
-
-      await supabase.auth.signInWithPassword({ email: `${cleanPhone}@gmail.com`, password });
+      const { data: signInData } = await supabase.auth.signInWithPassword({ email: `${cleanPhone}@gmail.com`, password });
+      if (signInData?.session?.access_token) localStorage.setItem('token', signInData.session.access_token);
+      else localStorage.removeItem('token');
     } catch (err) {
       setError(err.message || 'Registration failed. Please try again.');
     } finally {
@@ -127,9 +127,9 @@ const Register = () => {
           <div style={{ display: 'inline-flex', width: '60px', height: '60px', borderRadius: '50%', background: 'var(--bg-color)', boxShadow: 'var(--shadow-light), var(--shadow-dark)', alignItems: 'center', justifyContent: 'center', color: 'var(--accent-color)', marginBottom: '15px' }}>
             <Printer size={28} />
           </div>
-          <h2>Shop Registration</h2>
+          <h2>Business Registration</h2>
           <p>
-            {step === 1 ? 'Step 1 of 2: Create Owner Account' : 'Step 2 of 2: Configure Shop Details'}
+            {step === 1 ? 'Step 1 of 2: Create Owner Account' : 'Step 2 of 2: Configure Business Details'}
           </p>
           
           {/* Visual Step Indicator Progress Bar */}
@@ -151,9 +151,9 @@ const Register = () => {
             <div style={{ display: 'inline-flex', width: '72px', height: '72px', borderRadius: '50%', alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(16,185,129,0.12)', margin: '0 auto 20px' }}>
               <CheckCircle size={42} style={{ color: 'var(--success-color)' }} />
             </div>
-            <h2>Shop Created Successfully!</h2>
+            <h2>Business Account Created!</h2>
             <p style={{ color: 'var(--text-secondary)', margin: '16px 0', lineHeight: '1.6' }}>
-              Your shop account is ready and you have received 10 free prints.
+              Your business account is ready with a 10-page trial allowance.
             </p>
             <div style={{ margin: '20px 0', color: 'var(--text-color)', fontWeight: 700 }}>
               {registeredShopName}
@@ -169,14 +169,14 @@ const Register = () => {
           /* Step 1 Form */
           <form onSubmit={handleNextStep}>
             <div className="neo-input-group">
-              <label className="neo-label">Shop Owner Name *</label>
+              <label className="neo-label">Business Name *</label>
               <div style={{ position: 'relative' }}>
                 <User size={18} style={{ position: 'absolute', left: '16px', top: '16px', color: 'var(--text-secondary)' }} />
                 <input
                   type="text"
                   className="neo-input"
                   style={{ paddingLeft: '45px' }}
-                  placeholder="e.g. John Doe"
+                  placeholder="e.g. City Print & Copy"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   required
@@ -269,21 +269,21 @@ const Register = () => {
               type="submit" 
               style={{ width: '100%', marginTop: '10px', justifyContent: 'center' }}
             >
-              Continue to Shop Configuration
+              Continue to Business Configuration
             </FloatingDotsButton>
           </form>
         ) : (
           /* Step 2 Form */
           <form onSubmit={handleSubmit}>
             <div className="neo-input-group">
-              <label className="neo-label">Shop Address *</label>
+              <label className="neo-label">Business Address *</label>
               <div style={{ position: 'relative' }}>
                 <MapPin size={18} style={{ position: 'absolute', left: '16px', top: '16px', color: 'var(--text-secondary)' }} />
                 <input
                   type="text"
                   className="neo-input"
                   style={{ paddingLeft: '45px' }}
-                  placeholder="Shop number, Street, Area, City"
+                  placeholder="Building, Street, Area, City"
                   value={address}
                   onChange={(e) => setAddress(e.target.value)}
                   required
@@ -352,7 +352,7 @@ const Register = () => {
                 style={{ flex: '2', justifyContent: 'center' }}
                 disabled={loading}
               >
-                {loading ? 'Processing...' : 'Create Shop Account'}
+                {loading ? 'Processing...' : 'Create Business Account'}
               </FloatingDotsButton>
             </div>
           </form>

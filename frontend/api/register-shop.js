@@ -1,3 +1,4 @@
+import { provisionOwner, isAdmin } from './_lib/security.js';
 import crypto from 'crypto';
 import { createClient } from '@supabase/supabase-js';
 
@@ -15,6 +16,8 @@ function setCors(req, res) {
     process.env.ALLOWED_ORIGIN,
     'https://www.printwithqr.in',
     'https://printwithqr.in',
+    'https://printwithqr.com',
+    'https://www.printwithqr.com',
     'http://localhost:5173',
     'http://localhost:3000'
   ].filter(Boolean);
@@ -230,6 +233,8 @@ export default async function handler(req, res) {
       console.error('[register-shop] Supabase upsert error:', shopError.message || shopError);
       return res.status(500).json({ error: 'Failed to save shop data. Please try again later.' });
     }
+
+    await provisionOwner(adminClient,userId);
 
     await adminClient.from('registration_attempts').insert({
       type: 'registration',

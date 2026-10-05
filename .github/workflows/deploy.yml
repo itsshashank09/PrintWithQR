@@ -1,40 +1,64 @@
 name: Deploy to Vercel
 
+# Preview first; production requires the owner's explicit approval.
 on:
-  push:
-    branches: [ main, master ]
+  workflow_dispatch:
+    inputs:
+      target:
+        description: Deployment environment (production requires owner approval)
+        type: choice
+        options: [preview, production]
+        default: preview
+        required: true
+
+permissions:
+  contents: read
+
+concurrency:
+  group: vercel-${{ inputs.target }}
+  cancel-in-progress: false
 
 jobs:
-  build-and-deploy:
+  deploy:
     runs-on: ubuntu-latest
+    environment: ${{ inputs.target }}
+    env:
+      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+      VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+      VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+      DEPLOY_TARGET: ${{ inputs.target }}
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
-          node-version: '22'
-
-      - name: Install frontend dependencies
+          node-version-file: .nvmrc
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            frontend/package-lock.json
+      - run: npm ci
+      - run: npm --prefix frontend ci
+      - run: npm run check:api
+      - run: npm run lint
+      - run: npm test
+      - run: npm run test:seo
+      - name: Verify deployment credentials
         run: |
-          cd frontend
-          npm ci
-
-      - name: Build frontend
+          test -n "$VERCEL_TOKEN"
+          test -n "$VERCEL_ORG_ID"
+          test -n "$VERCEL_PROJECT_ID"
+      - name: Pull environment and build
         run: |
-          cd frontend
-          npm run build
-
-      - name: Install Vercel CLI
-        run: npm install -g vercel
-
-      - name: Deploy to Vercel
-        env:
-          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+          node scripts/vercel.mjs pull --cwd frontend --yes --environment="$DEPLOY_TARGET" --token="$VERCEL_TOKEN"
+          if [ "$DEPLOY_TARGET" = production ]; then
+            node scripts/vercel.mjs build --cwd frontend --prod --token="$VERCEL_TOKEN"
+          else
+            node scripts/vercel.mjs build --cwd frontend --token="$VERCEL_TOKEN"
+          fi
+      - name: Deploy the verified build
         run: |
-          cd frontend
-          # Use --prod to deploy production; --confirm to skip interactive prompts
-          vercel --prod --token "$VERCEL_TOKEN" --confirm
+          if [ "$DEPLOY_TARGET" = production ]; then
+            node scripts/vercel.mjs deploy --cwd frontend --prebuilt --prod --token="$VERCEL_TOKEN"
+          else
+            node scripts/vercel.mjs deploy --cwd frontend --prebuilt --token="$VERCEL_TOKEN"
+          fi

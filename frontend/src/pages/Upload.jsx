@@ -1,925 +1,244 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { 
-  Upload, Printer, FileText, Info, HelpCircle, AlertCircle, 
-  ChevronLeft, ChevronRight, CheckCircle, Landmark, RefreshCw, ArrowRight
-} from 'lucide-react';
-import { supabase } from '../supabaseClient';
-import { 
-  FloatingDotsButton, 
-  GradientBeamButton 
-} from '../components/RectangleButtons';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
+import { Upload, Printer, FileText, AlertCircle, ChevronLeft, ChevronRight, CheckCircle, X, RefreshCw, ShieldCheck } from 'lucide-react';
+import { platform } from '../utils/platform';
+import { readReceipts, receiptLink, saveReceipt, newOrderToken } from '../utils/customerOrders.mjs';
+import { countPdfPages, estimateFiles, uploadWithProgress, uploadQueueProgress } from '../utils/upload.mjs';
+import { FloatingDotsButton } from '../components/RectangleButtons';
 import { SkeuomorphicToggle } from '../components/SkeuomorphicToggle';
+import LoadingSpinner from '../components/LoadingSpinner';
+import UploadProgress from '../components/UploadProgress';
+import UploadFileDetails from '../components/UploadFileDetails';
+import '../customer.css';
 
-// Helper to get pdfjsLib dynamically from window
-const getPdfjs = () => {
-  const lib = window.pdfjsLib;
-  if (lib && !lib.GlobalWorkerOptions.workerSrc) {
-    lib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
-  }
-  return lib;
-};
-
-// Compress image before upload to avoid "Failed to fetch" on slow networks or Supabase bucket limits
-const compressImage = (file) => {
-  return new Promise((resolve) => {
-    if (file.size <= 500 * 1024) {
-      resolve(file);
-      return;
-    }
-    const reader = new FileReader();
-    reader.readAsDataURL(file);
-    reader.onload = (event) => {
-      const img = new Image();
-      img.src = event.target.result;
-      img.onload = () => {
-        const canvas = document.createElement('canvas');
-        let width = img.width;
-        let height = img.height;
-        const MAX_DIM = 2400; // ample resolution for A4 print
-        if (width > height && width > MAX_DIM) {
-          height *= MAX_DIM / width;
-          width = MAX_DIM;
-        } else if (height > MAX_DIM) {
-          width *= MAX_DIM / height;
-          height = MAX_DIM;
-        }
-        canvas.width = width;
-        canvas.height = height;
-        const ctx = canvas.getContext('2d');
-        ctx.drawImage(img, 0, 0, width, height);
-        canvas.toBlob((blob) => {
-          if (!blob) {
-            resolve(file);
-            return;
-          }
-          const compressedFile = new File([blob], file.name, {
-            type: 'image/jpeg',
-            lastModified: Date.now(),
-          });
-          resolve(compressedFile.size < file.size ? compressedFile : file);
-        }, 'image/jpeg', 0.85); 
-      };
-      img.onerror = () => resolve(file);
-    };
-    reader.onerror = () => resolve(file);
+let pdfjsPromise;
+function loadPreviewLibrary() {
+  if (!pdfjsPromise) pdfjsPromise = new Promise(resolve => {
+    if (window.pdfjsLib) { resolve(window.pdfjsLib); return; }
+    const script = document.createElement('script');
+    const timer = setTimeout(() => resolve(null), 8000);
+    script.src = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js';
+    script.async = true;
+    script.onload = () => { clearTimeout(timer); resolve(window.pdfjsLib || null); };
+    script.onerror = () => { clearTimeout(timer); resolve(null); };
+    document.head.appendChild(script);
   });
-};
+  return pdfjsPromise;
+}
+const money = value => new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 2 }).format(value);
 
-const UploadPage = () => {
+export default function UploadPage() {
   const { shopId } = useParams();
   const navigate = useNavigate();
-  
-  // Shop details
-  const [shop, setShop] = useState(null);
-  const [loadingShop, setLoadingShop] = useState(true);
-  const [error, setError] = useState('');
-  
-  // File details - array of file entries
-  const [files, setFiles] = useState([]); // [{ file, fileType, filePages, fileUrl, pdfRef }, ...]
-  const [dragging, setDragging] = useState(false);
-  const [activeFileIndex, setActiveFileIndex] = useState(0);
-  
-  // Print settings
-  const [printRangeType, setPrintRangeType] = useState('all'); // all, odd, even, custom
-  const [printRangeCustom, setPrintRangeCustom] = useState('');
-  const [printType, setPrintType] = useState('bw'); // bw, color
-  const [paperSize, setPaperSize] = useState('A4');
-  const [duplex, setDuplex] = useState(false);
-  
-  // Preview PDF state
-  const [previewPage, setPreviewPage] = useState(1);
-  const [renderingPreview, setRenderingPreview] = useState(false);
-  const canvasRef = useRef(null);
+  const [shop, setShop] = useState(null), [shopError, setShopError] = useState(''), [shopLoading, setShopLoading] = useState(true);
+  const [reload, setReload] = useState(0), [files, setFiles] = useState([]), [notice, setNotice] = useState('');
+  const [reading, setReading] = useState(''), [step, setStep] = useState(1), [dragging, setDragging] = useState(false);
+  const [activeIndex, setActiveIndex] = useState(0), [previewPage, setPreviewPage] = useState(1), [previewState, setPreviewState] = useState('loading');
+  const [printType, setPrintType] = useState('bw'), [paperSize, setPaperSize] = useState('A4'), [duplex, setDuplex] = useState(false);
+  const [rangeType, setRangeType] = useState('all'), [rangeCustom, setRangeCustom] = useState('');
+  const [sending, setSending] = useState(false), [sendError, setSendError] = useState(''), [locked, setLocked] = useState(false);
+  const [progress, setProgress] = useState({ phase: 'idle', percent: 0, index: 0, name: '' });
+  const [recent, setRecent] = useState(() => readReceipts().filter(row => row.shopId === shopId));
+  const inputRef = useRef(null), canvasRef = useRef(null), filesRef = useRef(files), busyRef = useRef(false), readingRef = useRef(false);
+  const abortRef = useRef(null), submissionRef = useRef(null), customerTokenRef = useRef(null), mounted = useRef(true);
+  const progressRef = useRef(null);
+  const showUploadProgress = step === 3 && progress.phase !== 'idle';
+  filesRef.current = files;
+  const current = files[activeIndex];
 
-  const [placingOrder, setPlacingOrder] = useState(false);
-  const [step, setStep] = useState(1);
-
-  // Helper getters for the active file
-  const activeFile = files[activeFileIndex] || null;
-  const file = activeFile?.file || null;
-  const fileType = activeFile?.fileType || '';
-  const filePages = activeFile?.filePages || 0;
-  const fileUrl = activeFile?.fileUrl || '';
-  const pdfRef = activeFile?.pdfRef || null;
-  const totalFilesPages = files.reduce((sum, f) => sum + (f.filePages || 0), 0);
-
-
-
-  // Order capability state for secure signed customer submission
-  const [orderCapability, setOrderCapability] = useState(null);
-  const [capabilityFetchedAt, setCapabilityFetchedAt] = useState(0);
-
-  const fetchOrderCapability = async (targetShopId) => {
-    try {
-      const resp = await fetch(`/api/create-print-order?shopId=${encodeURIComponent(targetShopId)}`);
-      if (resp.ok) {
-        const data = await resp.json();
-        if (data.capabilityToken) {
-          setOrderCapability(data.capabilityToken);
-          setCapabilityFetchedAt(Date.now());
-          return data.capabilityToken;
-        }
-      }
-    } catch (err) {
-      console.warn('Failed to obtain order session capability:', err);
-    }
-    return null;
-  };
-
-  // Fetch shop metadata on entry
   useEffect(() => {
-    const fetchShop = async () => {
-      try {
-        const { data, error: dbError } = await supabase
-          .from('shops')
-          .select('*')
-          .eq('id', shopId)
-          .single();
-        
-        if (dbError || !data) {
-          throw new Error('This shop is not registered or currently inactive.');
-        }
-
-        const isExpired = data.subscription_expires_at ? new Date(data.subscription_expires_at) < new Date() : false;
-        const hasPaidSubscription = data.is_paid === 1 && data.subscription_status === 'active' && !isExpired;
-        
-        const isFreePlan = data.subscription_status === 'free';
-        const freeAllowed = data.free_prints_allowed !== null && data.free_prints_allowed !== undefined ? data.free_prints_allowed : 10;
-        const freeUsed = data.free_prints_used || 0;
-        const freeRemaining = Math.max(0, freeAllowed - freeUsed);
-
-        if (!hasPaidSubscription && !(isFreePlan && freeRemaining > 0)) {
-          throw new Error('This shop subscription has expired or run out of free prints. Please inform the shop owner to renew.');
-        }
-        
-        setShop(data);
-        await fetchOrderCapability(shopId);
-      } catch (err) {
-        setError(err.message);
-      } finally {
-        setLoadingShop(false);
-      }
-    };
-    
-    fetchShop();
-  }, [shopId]);
-
-  // Clean up object URLs on unmount
+    let active = true;
+    setShopLoading(true); setShopError('');
+    platform('public_shop', { shopId }, false, 'GET').then(({ shop: value }) => {
+      if (!active) return;
+      const paid = value.is_paid === 1 && value.subscription_status === 'active' && (!value.subscription_expires_at || Date.parse(value.subscription_expires_at) > Date.now());
+      const trial = value.subscription_status === 'free' && Number(value.free_prints_used || 0) < Number(value.free_prints_allowed ?? 10);
+      if (!paid && !trial) { setShopError('This business is not accepting new orders right now. Please ask the counter staff.'); return; }
+      setShop(value);
+    }).catch(error => { if (active) setShopError(error.message); }).finally(() => { if (active) setShopLoading(false); });
+    setRecent(readReceipts().filter(row => row.shopId === shopId));
+    return () => { active = false; };
+  }, [shopId, reload]);
   useEffect(() => {
-    return () => {
-      files.forEach(f => { if (f.fileUrl) URL.revokeObjectURL(f.fileUrl); });
-    };
+    mounted.current = true;
+    return () => { mounted.current = false; abortRef.current?.abort(); filesRef.current.forEach(item => URL.revokeObjectURL(item.url)); };
   }, []);
-
-  // Handle PDF rendering inside Canvas
-  const renderPdfPage = async (pageNumber, pdfInstance = pdfRef) => {
-    if (!canvasRef.current || !pdfInstance) return;
-    setRenderingPreview(true);
-    try {
-      const page = await pdfInstance.getPage(pageNumber);
-      const canvas = canvasRef.current;
-      if (!canvas) return;
-      const context = canvas.getContext('2d');
-      
-      const viewport = page.getViewport({ scale: 1 });
-      // Calculate scale to fit canvas inside preview box
-      const scale = Math.min(260 / viewport.width, 350 / viewport.height);
-      const scaledViewport = page.getViewport({ scale });
-      
-      canvas.width = scaledViewport.width;
-      canvas.height = scaledViewport.height;
-      
-      const renderContext = {
-        canvasContext: context,
-        viewport: scaledViewport
-      };
-      
-      await page.render(renderContext).promise;
-    } catch (err) {
-      console.error('Error rendering PDF page:', err);
-    } finally {
-      setRenderingPreview(false);
-    }
-  };
-
+  useEffect(() => { window.scrollTo({ top: 0, behavior: 'auto' }); }, [step]);
   useEffect(() => {
-    if (pdfRef && step === 2) {
-      const timer = setTimeout(() => {
-        renderPdfPage(previewPage);
-      }, 50);
-      return () => clearTimeout(timer);
-    }
-  }, [previewPage, pdfRef, step, activeFileIndex]);
+    if (sending && showUploadProgress) progressRef.current?.scrollIntoView({ block: 'start', behavior: 'auto' });
+  }, [sending, showUploadProgress]);
 
-  // Zero-dependency binary PDF page count extractor (failsafe if PDF.js CDN is blocked or slow)
-  const parsePdfPageCountFromBuffer = (arrayBuffer) => {
+  // Cancel stale renders before changing the active page or file.
+  useEffect(() => {
+    if (step !== 2 || !current || current.type !== 'pdf') return;
+    let stopped = false, renderTask, pdfDocument;
+    setPreviewState('loading');
+    (async () => {
+      try {
+        const lib = await loadPreviewLibrary();
+        if (!lib || stopped) { if (!stopped) setPreviewState('unavailable'); return; }
+        lib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+        pdfDocument = await lib.getDocument({ data: await current.file.arrayBuffer() }).promise;
+        if (stopped) { await pdfDocument.destroy(); return; }
+        const page = await pdfDocument.getPage(previewPage);
+        if (stopped || !canvasRef.current) return;
+        const canvas = canvasRef.current, viewport = page.getViewport({ scale: 1 });
+        const view = page.getViewport({ scale: Math.min(420 / viewport.width, 500 / viewport.height) });
+        canvas.width = view.width; canvas.height = view.height;
+        renderTask = page.render({ canvasContext: canvas.getContext('2d'), viewport: view });
+        await renderTask.promise;
+        if (!stopped) setPreviewState('ready');
+      } catch { if (!stopped) setPreviewState('unavailable'); }
+    })();
+    return () => { stopped = true; renderTask?.cancel(); pdfDocument?.destroy().catch(() => {}); };
+  }, [step, current, previewPage]);
+
+  async function chooseFiles(list) {
+    if (readingRef.current || busyRef.current || locked || !list?.length) return;
+    readingRef.current = true; setNotice(''); setSendError('');
+    const entries = [], problems = [], available = Math.max(0, 10 - filesRef.current.length);
+    if (list.length > available) problems.push('Choose up to 10 files per order. Extra files were not added.');
     try {
-      const text = new TextDecoder('latin1').decode(new Uint8Array(arrayBuffer));
-      // 1. Check for /Count N in PDF document catalog
-      const countMatches = text.match(/\/Count\s+(\d+)/g);
-      if (countMatches && countMatches.length > 0) {
-        let maxCount = 0;
-        for (const m of countMatches) {
-          const num = parseInt(m.replace(/\/Count\s+/, ''), 10);
-          if (!isNaN(num) && num > maxCount) {
-            maxCount = num;
+      for (const file of Array.from(list).slice(0, available)) {
+        setReading(`Reading ${file.name}…`);
+        try {
+          if (file.size < 1 || file.size > 50 * 1024 * 1024) throw new Error('Choose a non-empty file smaller than 50 MB.');
+          const extension = file.name.split('.').pop().toLowerCase();
+          if (!['pdf', 'png', 'jpg', 'jpeg', 'zip'].includes(extension)) throw new Error('Use a PDF, PNG, JPEG or ZIP file.');
+          if (file.name.length > 150) throw new Error('Shorten the filename to fewer than 151 characters.');
+          const type = extension === 'pdf' ? 'pdf' : extension === 'zip' ? 'zip' : 'image';
+          let pages = type === 'zip' ? null : 1;
+          if (type === 'pdf') {
+            try { pages = await countPdfPages(await file.arrayBuffer()); }
+            catch { throw new Error('This PDF is damaged or locked. Save an unlocked PDF and try again.'); }
           }
-        }
-        if (maxCount > 0) return maxCount;
+          if (!mounted.current) return;
+          // Keep originals: silent image compression can reduce print quality.
+          const original = type === 'zip' ? new File([file], file.name, { type: 'application/zip', lastModified: file.lastModified }) : file;
+          entries.push({ id: crypto.randomUUID(), file: original, type, pages, url: URL.createObjectURL(original), mime: extension === 'pdf' ? 'application/pdf' : extension === 'png' ? 'image/png' : extension === 'zip' ? 'application/zip' : 'image/jpeg' });
+        } catch (error) { problems.push(`${file.name}: ${error.message}`); }
       }
-      // 2. Fallback: Count /Type /Page entries
-      const pageMatches = text.match(/\/Type\s*\/Page\b/g);
-      if (pageMatches && pageMatches.length > 0) {
-        return pageMatches.length;
-      }
-    } catch (e) {
-      console.warn("Binary PDF page extraction failed:", e);
-    }
-    return 1;
-  };
-
-  // Read PDF pages using pdfjs with binary parser fallback
-  // Returns a Promise that resolves with { pages, pdfInstance }
-  const processPdfFile = (selectedFile) => {
-    return new Promise((resolve) => {
-      const reader = new FileReader();
-      reader.onload = async (e) => {
-        const arrayBuffer = e.target.result;
-        let detectedPages = 0;
-        let pdfInstance = null;
-
-        const pdfjs = getPdfjs();
-        if (pdfjs) {
-          try {
-            const pdf = await pdfjs.getDocument({ data: arrayBuffer }).promise;
-            pdfInstance = pdf;
-            detectedPages = pdf.numPages;
-          } catch (pdfJsErr) {
-            console.warn('PDF.js renderer error, using binary parser fallback:', pdfJsErr);
-          }
-        }
-
-        if (detectedPages <= 0) {
-          detectedPages = parsePdfPageCountFromBuffer(arrayBuffer);
-        }
-
-        resolve({ pages: Math.max(1, detectedPages), pdfInstance });
-      };
-      reader.readAsArrayBuffer(selectedFile);
-    });
-  };
-
-  // Handle multiple files from input or drop
-  const handleFilesSelected = async (selectedFiles) => {
-    if (!selectedFiles || selectedFiles.length === 0) return;
-
-    const newEntries = [];
-    for (let selectedFile of selectedFiles) {
-      // Validate size (100MB limit per file)
-      if (selectedFile.size > 100 * 1024 * 1024) {
-        alert(`File "${selectedFile.name}" exceeds the 100 MB limit and was skipped.`);
-        continue;
-      }
-
-      const extension = selectedFile.name.split('.').pop().toLowerCase();
-      const isPDF = extension === 'pdf';
-      const isImage = ['png', 'jpg', 'jpeg'].includes(extension);
-
-      if (!isPDF && !isImage) {
-        alert(`File "${selectedFile.name}" is not a supported format and was skipped.`);
-        continue;
-      }
-
-      if (isImage) {
-        selectedFile = await compressImage(selectedFile);
-      }
-
-      const entry = {
-        file: selectedFile,
-        fileType: isPDF ? 'pdf' : 'image',
-        filePages: 1,
-        fileUrl: URL.createObjectURL(selectedFile),
-        pdfRef: null
-      };
-
-      if (isPDF) {
-        const { pages, pdfInstance } = await processPdfFile(selectedFile);
-        entry.filePages = pages;
-        entry.pdfRef = pdfInstance;
-      }
-
-      newEntries.push(entry);
-    }
-
-    if (newEntries.length > 0) {
-      setFiles(prev => [...prev, ...newEntries]);
-      setActiveFileIndex(0);
-      setPreviewPage(1);
-      setStep(1);
-    }
-  };
-
-  // Remove a file from the list
-  const removeFile = (index) => {
-    setFiles(prev => {
-      const updated = [...prev];
-      if (updated[index]?.fileUrl) URL.revokeObjectURL(updated[index].fileUrl);
-      updated.splice(index, 1);
-      return updated;
-    });
-    setActiveFileIndex(0);
-    setPreviewPage(1);
-  };
-
-  // Legacy single-file handler for backward compatibility
-  const handleFileChange = (selectedFile) => {
-    if (selectedFile) handleFilesSelected([selectedFile]);
-  };
-
-  const handleDragOver = (e) => {
-    e.preventDefault();
-    setDragging(true);
-  };
-
-  const handleDragLeave = () => {
-    setDragging(false);
-  };
-
-  const handleDrop = (e) => {
-    e.preventDefault();
-    setDragging(false);
-    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
-      handleFilesSelected(Array.from(e.dataTransfer.files));
-    }
-  };
-
-  // Helper to parse custom print ranges (e.g. 2-5, 7)
-  const calculatePagesFromCustomRange = (rangeStr, maxPages) => {
-    if (!rangeStr.trim()) return 0;
-    
-    const pages = new Set();
-    const parts = rangeStr.split(',');
-    
-    for (let part of parts) {
-      part = part.trim();
-      if (part.includes('-')) {
-        const [startStr, endStr] = part.split('-');
-        const start = parseInt(startStr);
-        const end = parseInt(endStr);
-        if (!isNaN(start) && !isNaN(end) && start <= end) {
-          for (let i = start; i <= end; i++) {
-            if (i >= 1 && i <= maxPages) pages.add(i);
-          }
-        }
-      } else {
-        const page = parseInt(part);
-        if (!isNaN(page) && page >= 1 && page <= maxPages) {
-          pages.add(page);
-        }
-      }
-    }
-    return pages.size;
-  };
-
-  // Calculate pages to print based on range type (across all files)
-  const getPagesToPrintForFile = (fPages) => {
-    if (printRangeType === 'all') return fPages;
-    if (printRangeType === 'odd') return Math.ceil(fPages / 2);
-    if (printRangeType === 'even') return Math.floor(fPages / 2);
-    if (printRangeType === 'custom') return calculatePagesFromCustomRange(printRangeCustom, fPages);
-    return fPages;
-  };
-
-  const totalPagesToPrint = files.reduce((sum, f) => sum + getPagesToPrintForFile(f.filePages), 0);
-
-  const calculateTotal = () => {
-    if (!shop || files.length === 0) return 0;
-    const rate = printType === 'color' ? (parseFloat(shop.color_rate) || 10.0) : (parseFloat(shop.bw_rate) || 5.0);
-    return Math.max(0, totalPagesToPrint) * rate;
-  };
-
-  // Place order — creates one order per uploaded file
-  const handlePlaceOrder = async () => {
-    if (files.length === 0) {
-      alert('Please upload at least one file to print.');
-      return;
-    }
-    if (totalPagesToPrint <= 0) {
-      alert('Invalid page count to print. Check custom page range.');
-      return;
-    }
-
-    setPlacingOrder(true);
-    try {
-      // 1. Fetch fresh, authoritative shop rates & subscription status directly from DB
-      const { data: freshShop, error: shopFetchErr } = await supabase
-        .from('shops')
-        .select('bw_rate, color_rate, is_paid, subscription_status, subscription_expires_at, free_prints_allowed, free_prints_used')
-        .eq('id', shopId)
-        .single();
-
-      if (shopFetchErr || !freshShop) {
-        throw new Error('Could not verify shop details. Please refresh and try again.');
-      }
-
-      const expiryDate = freshShop.subscription_expires_at ? new Date(freshShop.subscription_expires_at) : null;
-      const isExpired = expiryDate && expiryDate < new Date();
-      const hasPaidSubscription = freshShop.is_paid === 1 && freshShop.subscription_status === 'active' && !isExpired;
-      const isFreePlan = freshShop.subscription_status === 'free';
-      const freeAllowed = Number(freshShop.free_prints_allowed || 10);
-      const freeUsed = Number(freshShop.free_prints_used || 0);
-      const freeRemaining = Math.max(0, freeAllowed - freeUsed);
-
-      if (!hasPaidSubscription && !isFreePlan) {
-        throw new Error('This print shop subscription is currently inactive or expired. Orders cannot be placed at this time.');
-      }
-
-      const dbRate = printType === 'color' ? (parseFloat(freshShop.color_rate) || 10.0) : (parseFloat(freshShop.bw_rate) || 5.0);
-
-      // Prepare order items and upload files to storage, but delegate final order creation to server-side API
-      const orderItems = [];
-      for (const entry of files) {
-        const f = entry.file;
-        const pages = Math.max(1, getPagesToPrintForFile(entry.filePages));
-        orderItems.push({
-          file: f,
-          file_name: f.name,
-          pages_to_print: pages,
-          print_type: printType,
-          paper_size: paperSize,
-          duplex: duplex ? 1 : 0,
-          estimated_amount: pages * dbRate
-        });
-      }
-
-      // If on free plan, ensure requested pages fit in remaining allowance before uploading
-      const totalRequested = orderItems.reduce((s, it) => s + it.pages_to_print, 0);
-      if (isFreePlan && totalRequested > freeRemaining) {
-        throw new Error(`You have requested ${totalRequested} pages, but this shop only has ${freeRemaining} free print${freeRemaining === 1 ? '' : 's'} remaining on its free trial. Please ask the shop owner to subscribe, or reduce your page count.`);
-      }
-
-      // Upload files to storage and collect public URLs
-      const preparedOrders = [];
-      for (const it of orderItems) {
-        const f = it.file;
-        const fileExt = f.name.split('.').pop();
-        const sanitizedFileName = f.name.replace(/[^a-zA-Z0-9._-]/g, '_');
-        const uniqueFileName = `${Date.now()}_${Math.random().toString(36).slice(2, 6)}_${sanitizedFileName}`;
-        const filePath = `${shopId}/${uniqueFileName}`;
-
-        const { error: uploadError } = await supabase.storage
-          .from('print-jobs')
-          .upload(filePath, f, { cacheControl: '3600', upsert: false });
-
-        if (uploadError) throw new Error(`Failed to upload "${f.name}": ${uploadError.message}`);
-
-        const { data: urlData } = await supabase.storage.from('print-jobs').getPublicUrl(filePath);
-        const publicUrl = urlData?.publicUrl || null;
-        if (!publicUrl) throw new Error('Failed to obtain public URL for uploaded file.');
-
-        preparedOrders.push({
-          file_path: publicUrl,
-          file_name: it.file_name,
-          pages_to_print: it.pages_to_print,
-          print_type: it.print_type,
-          paper_size: it.paper_size,
-          duplex: it.duplex
-        });
-      }
-
-      // Ensure we have a valid capability token (refresh if older than 12 minutes)
-      let currentCapability = orderCapability;
-      if (!currentCapability || (Date.now() - capabilityFetchedAt > 12 * 60 * 1000)) {
-        currentCapability = await fetchOrderCapability(shopId);
-      }
-
-      if (!currentCapability) {
-        throw new Error('Unable to establish secure order session with shop. Please refresh the page and try again.');
-      }
-
-      const idempotencyKey = `idemp_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`;
-
-      // Send order creation request to server API with signed capability token & idempotency key
-      const resp = await fetch('/api/create-print-order', {
-        method: 'POST',
-        headers: { 
-          'Content-Type': 'application/json',
-          'X-Order-Capability': currentCapability,
-          'X-Idempotency-Key': idempotencyKey
-        },
-        body: JSON.stringify({ 
-          shopId, 
-          orders: preparedOrders, 
-          paperSize, 
-          duplex,
-          orderCapability: currentCapability,
-          idempotencyKey
-        })
-      });
-
-      const payload = await resp.json();
-      if (!resp.ok) {
-        throw new Error(payload.error || 'Failed to place print order.');
-      }
-
-      if (Array.isArray(payload.orderIds) && payload.orderIds.length > 0) {
-        navigate(`/order/${payload.orderIds[0]}`);
-      }
-    } catch (err) {
-      alert(err.message);
+      if (mounted.current) { setFiles(previous => [...previous, ...entries]); setNotice(problems.join(' ')); }
     } finally {
-      setPlacingOrder(false);
+      readingRef.current = false;
+      if (mounted.current) setReading('');
+      else entries.forEach(entry => URL.revokeObjectURL(entry.url));
     }
-  };
+  }
+  function removeFile(id) {
+    if (sending || locked || readingRef.current) return;
+    const removed = files.find(item => item.id === id); if (removed) URL.revokeObjectURL(removed.url);
+    setFiles(previous => previous.filter(item => item.id !== id)); setActiveIndex(0); setPreviewPage(1); setSendError('');
+  }
+  const rate = Number(printType === 'color' ? shop?.color_rate ?? 10 : shop?.bw_rate ?? 5);
+  const { estimates, rangeError, totalPages, totalAmount } = useMemo(() => estimateFiles(files, { rangeType, rangeCustom, rate }), [files, rangeType, rangeCustom, rate]);
+  const hasArchives = files.some(entry => entry.type === 'zip');
+  const onlyArchives = files.length > 0 && files.every(entry => entry.type === 'zip');
 
-  if (loadingShop) {
-    return <div style={{ textAlign: 'center', padding: '100px' }}>Loading shop interface...</div>;
+  async function placeOrder() {
+    if (busyRef.current || reading || !files.length || (rangeError && !submissionRef.current)) return;
+    busyRef.current = true; setSending(true); setSendError('');
+    const controller = new AbortController(); abortRef.current = controller;
+    try {
+      if (!submissionRef.current) {
+        const queueProgress = uploadQueueProgress(files), orders = [];
+        for (let index = 0; index < files.length; index++) {
+          const entry = files[index];
+          if (!entry.uploadIntent) {
+            setProgress({ phase: 'preparing', percent: queueProgress.percent, index: index + 1, name: entry.file.name });
+            if (controller.signal.aborted) throw new Error('Upload paused. Retry when you are ready.');
+            const intent = await platform('upload_intent', { shopId, name: entry.file.name, mime: entry.mime, size: entry.file.size }, false, 'POST', { signal: controller.signal });
+            await uploadWithProgress({ url: intent.uploadUrl, projectUrl: import.meta.env.VITE_SUPABASE_URL, file: entry.file, signal: controller.signal, onProgress: percent => {
+              const value = queueProgress.update(entry, percent), phase = percent === 100 ? 'verifying' : 'uploading';
+              if (mounted.current) setProgress(previous => previous.phase === phase && previous.percent === value && previous.index === index + 1 ? previous : { phase, percent: value, index: index + 1, name: entry.file.name });
+            } });
+            entry.uploadIntent = intent;
+          }
+          if (mounted.current) setProgress({ phase: 'uploading', percent: queueProgress.confirm(entry), index: index + 1, name: '' });
+          orders.push({ intentId: entry.uploadIntent.intentId, intentToken: entry.uploadIntent.intentToken, ...(entry.type === 'zip' ? {} : { print_type: printType, paper_size: paperSize, duplex: duplex ? 1 : 0, rangeType, rangeCustom }) });
+        }
+        if (!customerTokenRef.current) customerTokenRef.current = newOrderToken();
+        submissionRef.current = { shopId, orders, customerToken: customerTokenRef.current };
+        setLocked(true);
+      }
+      // Replay the exact body after a lost response; the server is idempotent.
+      setProgress({ phase: 'submitting', percent: 100, index: files.length, name: '' });
+      const confirmationTimeout = setTimeout(() => controller.abort(), 45000);
+      let response, result;
+      try {
+        response = await fetch('/api/create-print-order', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(submissionRef.current), signal: controller.signal });
+        result = await response.json();
+      } finally { clearTimeout(confirmationTimeout); }
+      if (!response.ok) {
+        // A server failure can arrive after a successful commit. Keep the exact
+        // checkout capability and settings until its confirmation is recovered.
+        if (response.status < 500) { submissionRef.current = null; setLocked(false); }
+        if (response.status === 410) files.forEach(entry => { delete entry.uploadIntent; });
+        throw new Error(result.error || 'The order was not accepted. Review your settings and retry.');
+      }
+      if (!Array.isArray(result.orderIds) || !result.orderIds.length) throw new Error('Confirmation could not be read. Retry to recover the same order.');
+      const token = customerTokenRef.current;
+      saveReceipt({ shopId, orderIds: result.orderIds, token });
+      if (!mounted.current) return;
+      const link = new URL(receiptLink(window.location.origin, result.orderIds[0], token));
+      navigate(link.pathname + link.hash, { replace: true });
+    } catch (error) {
+      if (mounted.current) { setSendError(error.name === 'AbortError' && submissionRef.current ? 'Confirmation took too long. Retry to recover the same order.' : error.message || 'Connection lost. Retry with the same files.'); setProgress(previous => ({ ...previous, phase: 'failed' })); }
+    } finally { busyRef.current = false; if (mounted.current) setSending(false); }
   }
 
-  if (error) {
-    return (
-      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '80vh', padding: '20px' }}>
-        <div className="neo-card" style={{ maxWidth: '480px', textAlign: 'center', padding: '40px' }}>
-          <AlertCircle size={48} style={{ color: 'var(--danger-color)', marginBottom: '15px' }} />
-          <h2>Shop Inactive</h2>
-          <p style={{ margin: '15px 0' }}>{error}</p>
-          <button className="neo-btn neo-btn-primary" onClick={() => window.location.reload()}>Retry</button>
+  if (shopLoading) return <LoadingSpinner label="Opening business upload" />;
+  if (shopError || !shop) return <main className="customer-shell"><section className="neo-card customer-empty"><AlertCircle size={32} /><h1>Unable to open this counter</h1><p>{shopError || 'Please scan the business QR again.'}</p><button className="neo-btn" onClick={() => setReload(value => value + 1)}>Try again</button>{recent[0] && <a className="neo-btn" href={receiptLink(window.location.origin, recent[0].orderIds[0], recent[0].token)}>Track your recent order</a>}</section></main>;
+
+  return <main className="customer-shell">
+    <header className="customer-header"><span className="customer-brand"><Printer size={23} /> PrintWithQR</span><h1>{shop.name}</h1>{shop.address && shop.address !== 'Not Provided' && <p>{shop.address}</p>}<p>Choose your documents. This counter will print them for you.</p></header>
+    {recent[0] && <a className="recent-order neo-card-inset" href={receiptLink(window.location.origin, recent[0].orderIds[0], recent[0].token)}><CheckCircle size={18} />Track your recent order <ChevronRight size={18} /></a>}
+    <ol className="customer-steps" aria-label="Order progress">{['Choose files', 'Preview', onlyArchives ? 'Review & send' : 'Print options'].map((label, index) => <li key={label} aria-current={step === index + 1 ? 'step' : undefined} className={step === index + 1 ? 'active' : ''}><span>{index + 1}</span>{label}</li>)}</ol>
+    {showUploadProgress && <div ref={progressRef} className="customer-upload-progress"><UploadProgress phase={progress.phase} percent={progress.percent} index={progress.index} uploaded={files.filter(file => file.uploadIntent).length} total={files.length} sending={sending} onPause={() => abortRef.current?.abort()} /></div>}
+    <section className="neo-card customer-card" aria-busy={sending || Boolean(reading)}>
+      {step === 1 && <>
+        <h2>What would you like to print?</h2><p>Tap the blue button to choose files from your phone.</p>
+        <div className={`customer-picker ${dragging ? 'dragging' : ''}`} onDragOver={event => { event.preventDefault(); setDragging(true); }} onDragLeave={() => setDragging(false)} onDrop={event => { event.preventDefault(); setDragging(false); chooseFiles(event.dataTransfer.files); }}>
+          <Upload size={38} aria-hidden="true" />
+          <FloatingDotsButton className="choose-files-button" onClick={() => inputRef.current?.click()} disabled={Boolean(reading) || sending || locked || files.length >= 10} icon={<Upload size={20} />}>{files.length ? 'Add more files' : 'Choose files from phone'}</FloatingDotsButton>
+          <input ref={inputRef} type="file" className="visually-hidden" aria-label="Select PDF, image or ZIP files" accept=".pdf,.png,.jpg,.jpeg,.zip" multiple disabled={Boolean(reading) || sending || locked} onChange={event => { chooseFiles(event.target.files); event.target.value = ''; }} />
+          <p>PDF, JPG, PNG or ZIP · 50 MB per file · up to 10 files</p><small>ZIPs go to the shop unchanged. Staff confirm their pages and price. In the picker, open Files, Browse or Downloads. On a computer you can also drag files here.</small>
         </div>
-      </div>
-    );
-  }
-
-  return (
-    <div className="neo-container" style={{ padding: '30px 15px' }}>
-      <header className="neo-header" style={{ marginBottom: '25px' }}>
-        <div className="logo-container">
-          <Printer size={24} className="neo-upload-icon" style={{ animation: 'none' }} />
-          <span style={{ fontWeight: 700, fontSize: '1.25rem' }}>{shop.name} Checkout</span>
-        </div>
-        <div style={{ fontSize: '0.82rem', color: 'var(--text-secondary)' }}>
-          {shop.address}
-        </div>
-      </header>
-
-      {/* Main Single Wizard Box */}
-      <div style={{ maxWidth: '500px', margin: '0 auto' }}>
-        
-        {/* Progress Bar / Step Indicator */}
-        <div className="neo-tabs" style={{ marginBottom: '25px', padding: '6px' }}>
-          <div className={`neo-tab ${step === 1 ? 'active' : ''}`} style={{ minHeight: '38px', fontSize: '0.88rem', gap: '6px' }}>
-            <span>1. Upload</span>
-          </div>
-          <div className={`neo-tab ${step === 2 ? 'active' : ''}`} style={{ minHeight: '38px', fontSize: '0.88rem', gap: '6px' }}>
-            <span>2. Preview</span>
-          </div>
-          <div className={`neo-tab ${step === 3 ? 'active' : ''}`} style={{ minHeight: '38px', fontSize: '0.88rem', gap: '6px' }}>
-            <span>3. Options &amp; Order</span>
-          </div>
-        </div>
-
-        <div className="neo-card upload-wizard-card">
-          
-          {/* STEP 1: FILE UPLOAD */}
-          {step === 1 && (
-            <div className="step-enter">
-              {/* Fixed Header */}
-              <div className="upload-wizard-header">
-                <div>
-                  <h3 style={{ margin: 0, fontSize: '1.2rem', fontWeight: 700 }}>File Upload</h3>
-                  <p style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', margin: '3px 0 0 0' }}>
-                    PDF, PNG, JPG, JPEG (Max 100MB)
-                  </p>
-                </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  {files.length > 0 ? (
-                    <FloatingDotsButton 
-                      onClick={() => { setActiveFileIndex(0); setPreviewPage(1); setStep(2); }}
-                      style={{ minHeight: '38px', height: '38px', padding: '0 16px', minWidth: '140px', fontSize: '0.86rem', borderRadius: '12px' }}
-                    >
-                      Next: Preview
-                    </FloatingDotsButton>
-                  ) : (
-                    <div style={{ minWidth: '140px', height: '38px' }} />
-                  )}
-                </div>
-              </div>
-
-              {/* Scrollable Body */}
-              <div className="upload-wizard-body">
-                <div 
-                  className={`neo-upload-area ${dragging ? 'dragging' : ''}`}
-                  onDragOver={handleDragOver}
-                  onDragLeave={handleDragLeave}
-                  onDrop={handleDrop}
-                  onClick={() => document.getElementById('fileInput').click()}
-                  style={{ padding: '24px 20px', minHeight: '120px' }}
-                >
-                  <Upload size={34} className="neo-upload-icon" />
-                  <div style={{ marginTop: '8px' }}>
-                    <span style={{ fontWeight: 600, fontSize: '0.95rem' }}>{files.length > 0 ? 'Tap to add more files' : 'Drag & drop files here'}</span>
-                    <span style={{ display: 'block', fontSize: '0.78rem', color: 'var(--text-secondary)', marginTop: '4px' }}>{files.length > 0 ? `${files.length} file(s) selected` : 'or click to browse (multiple allowed)'}</span>
-                  </div>
-                  <input 
-                    id="fileInput" 
-                    type="file" 
-                    style={{ display: 'none' }} 
-                    accept=".pdf,.png,.jpg,.jpeg"
-                    multiple
-                    onChange={(e) => { handleFilesSelected(Array.from(e.target.files)); e.target.value = ''; }}
-                  />
-                </div>
-
-                {/* Selected Files List */}
-                {files.length > 0 && (
-                  <div style={{ marginTop: '12px' }}>
-                    {files.map((entry, idx) => (
-                      <div key={idx} className="neo-card-inset" style={{ 
-                        padding: '10px 14px', borderRadius: '10px', marginBottom: '8px',
-                        display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px'
-                      }}>
-                        <div style={{ flex: 1, minWidth: 0 }}>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                            <FileText size={16} style={{ color: 'var(--accent)', flexShrink: 0 }} />
-                            <span style={{ fontWeight: 600, fontSize: '0.88rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                              {entry.file.name}
-                            </span>
-                          </div>
-                          <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginTop: '2px', paddingLeft: '24px' }}>
-                            {(entry.file.size / (1024 * 1024)).toFixed(2)} MB · {entry.filePages} page(s)
-                          </div>
-                        </div>
-                        <button
-                          className="neo-btn"
-                          style={{ padding: '5px 10px', borderRadius: '8px', fontSize: '0.78rem', flexShrink: 0 }}
-                          onClick={(e) => { e.stopPropagation(); removeFile(idx); }}
-                          title="Remove file"
-                        >
-                          ✕
-                        </button>
-                      </div>
-                    ))}
-                    <div style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', textAlign: 'right', marginTop: '4px' }}>
-                      Total: {files.length} file(s) · {totalFilesPages} page(s)
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
-
-          {/* STEP 2: PRINT PREVIEW */}
-          {step === 2 && (
-            <div className="step-enter">
-              {/* Fixed Header */}
-              <div className="upload-wizard-header">
-                <div>
-                  <h3 style={{ margin: 0, fontSize: '1.2rem', fontWeight: 700 }}>Document Preview</h3>
-                  <p style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', margin: '3px 0 0 0' }}>
-                    {fileType === 'pdf' ? `Page ${previewPage} of ${filePages}` : 'Review document preview'}
-                  </p>
-                </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <button 
-                    className="neo-btn" 
-                    style={{ height: '38px', padding: '0 16px', borderRadius: '12px', fontSize: '0.85rem', fontWeight: 600 }}
-                    onClick={() => setStep(1)}
-                  >
-                    Back
-                  </button>
-                  <FloatingDotsButton
-                    onClick={() => setStep(3)}
-                    style={{ minHeight: '38px', height: '38px', padding: '0 16px', minWidth: '140px', fontSize: '0.86rem', borderRadius: '12px' }}
-                  >
-                    Next: Options
-                  </FloatingDotsButton>
-                </div>
-              </div>
-
-              {/* Scrollable Body */}
-              <div className="upload-wizard-body">
-                {/* File tabs for multi-file preview */}
-                {files.length > 1 && (
-                  <div style={{ display: 'flex', gap: '6px', overflowX: 'auto', marginBottom: '10px', paddingBottom: '4px', flexShrink: 0 }}>
-                    {files.map((entry, idx) => (
-                      <button
-                        key={idx}
-                        className={`neo-btn ${idx === activeFileIndex ? 'neo-btn-primary' : ''}`}
-                        style={{ padding: '6px 12px', borderRadius: '8px', fontSize: '0.78rem', whiteSpace: 'nowrap', flexShrink: 0 }}
-                        onClick={() => { setActiveFileIndex(idx); setPreviewPage(1); }}
-                      >
-                        {entry.file.name.length > 18 ? entry.file.name.substring(0, 15) + '...' : entry.file.name}
-                      </button>
-                    ))}
-                  </div>
-                )}
-
-                {/* PDF Page Navigation Header inside Preview if multipage */}
-                {fileType === 'pdf' && filePages > 1 && (
-                  <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '12px', marginBottom: '10px', flexShrink: 0 }}>
-                    <button 
-                      className="neo-btn" 
-                      style={{ padding: '5px 12px', borderRadius: '8px' }}
-                      disabled={previewPage <= 1 || renderingPreview}
-                      onClick={() => setPreviewPage(prev => prev - 1)}
-                    >
-                      <ChevronLeft size={14} />
-                    </button>
-                    <span style={{ fontSize: '0.85rem', fontWeight: 600 }}>Page {previewPage} / {filePages}</span>
-                    <button 
-                      className="neo-btn" 
-                      style={{ padding: '5px 12px', borderRadius: '8px' }}
-                      disabled={previewPage >= filePages || renderingPreview}
-                      onClick={() => setPreviewPage(prev => prev + 1)}
-                    >
-                      <ChevronRight size={14} />
-                    </button>
-                  </div>
-                )}
-
-                <div className="neo-preview-box" style={{ background: '#ffffff', minHeight: '260px', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '12px', overflow: 'hidden', padding: '12px' }}>
-                  {fileType === 'image' ? (
-                    <img 
-                      src={fileUrl} 
-                      alt="Preview" 
-                      style={{ maxWidth: '100%', maxHeight: '300px', objectFit: 'contain', borderRadius: '8px', boxShadow: 'var(--shadow-dark)' }} 
-                    />
-                  ) : (
-                    <div style={{ position: 'relative', width: '100%', display: 'flex', justifyContent: 'center' }}>
-                      <canvas ref={canvasRef} style={{ boxShadow: 'var(--shadow-dark)', borderRadius: '4px', maxWidth: '100%', maxHeight: '300px', display: 'block' }}></canvas>
-                      {renderingPreview && (
-                        <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(224, 224, 224, 0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '12px' }}>
-                          <RefreshCw size={24} className="neo-upload-icon" />
-                        </div>
-                      )}
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* STEP 3: PRINT OPTIONS & ORDER */}
-          {step === 3 && (
-            <div className="step-enter">
-              {/* Fixed Header */}
-              <div className="upload-wizard-header">
-                <div>
-                  <h3 style={{ margin: 0, fontSize: '1.2rem', fontWeight: 700 }}>Print Configuration</h3>
-                  <p style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', margin: '3px 0 0 0' }}>
-                    Select print preferences
-                  </p>
-                </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <button 
-                    className="neo-btn" 
-                    style={{ height: '38px', padding: '0 16px', borderRadius: '12px', fontSize: '0.85rem', fontWeight: 600 }}
-                    onClick={() => setStep(2)}
-                  >
-                    Back
-                  </button>
-                  <FloatingDotsButton 
-                    disabled={placingOrder || totalPagesToPrint <= 0}
-                    onClick={handlePlaceOrder}
-                    style={{ minHeight: '38px', height: '38px', padding: '0 14px', minWidth: '140px', fontSize: '0.84rem', borderRadius: '12px' }}
-                    icon={<Printer size={15} className="btn-printer-pulse" />}
-                  >
-                    {placingOrder ? 'Sending...' : `Confirm (₹${calculateTotal()})`}
-                  </FloatingDotsButton>
-                </div>
-              </div>
-
-              {/* Scrollable Body */}
-              <div className="upload-wizard-body">
-                {/* Color Option */}
-                <div className="neo-input-group" style={{ marginBottom: '14px' }}>
-                  <label className="neo-label">Color Option</label>
-                  <div className="neo-tabs">
-                    <div 
-                      className={`neo-tab ${printType === 'bw' ? 'active' : ''}`}
-                      onClick={() => setPrintType('bw')}
-                    >
-                      B&W (₹{shop.bw_rate}/page)
-                    </div>
-                    {shop.color_enabled !== 0 ? (
-                      <div 
-                        className={`neo-tab ${printType === 'color' ? 'active' : ''}`}
-                        onClick={() => setPrintType('color')}
-                      >
-                        Color (₹{shop.color_rate}/page)
-                      </div>
-                    ) : (
-                      <div 
-                        className="neo-tab"
-                        style={{ opacity: 0.5, cursor: 'not-allowed', textDecoration: 'line-through' }}
-                        title="Color printing is disabled by this shop"
-                      >
-                        Color (N/A)
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                {/* Select Pages */}
-                <div className="neo-input-group" style={{ marginBottom: '14px' }}>
-                  <label className="neo-label">Select Pages</label>
-                  <select 
-                    className="neo-select"
-                    value={printRangeType}
-                    onChange={(e) => setPrintRangeType(e.target.value)}
-                  >
-                    <option value="all">All Pages ({totalFilesPages})</option>
-                    <option value="odd">Odd Pages Only</option>
-                    <option value="even">Even Pages Only</option>
-                    <option value="custom">Custom Range</option>
-                  </select>
-                </div>
-
-                {/* Custom Range Input */}
-                {printRangeType === 'custom' && (
-                  <div className="neo-input-group" style={{ marginBottom: '14px' }}>
-                    <label className="neo-label">Custom Range (e.g. 2-5, 7, 9-11)</label>
-                    <input 
-                      type="text" 
-                      className="neo-input" 
-                      placeholder="Enter ranges separated by commas"
-                      value={printRangeCustom}
-                      onChange={(e) => setPrintRangeCustom(e.target.value)}
-                    />
-                    <p style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginTop: '4px' }}>
-                      Pages to print: {totalPagesToPrint} / {totalFilesPages}
-                    </p>
-                  </div>
-                )}
-
-                {/* Paper Size & Duplex Switch */}
-                <div className="neo-grid" style={{ gap: '0 16px', gridTemplateColumns: '1fr 1fr', marginBottom: '14px' }}>
-                  <div className="neo-input-group">
-                    <label className="neo-label">Paper Size</label>
-                    <select 
-                      className="neo-select"
-                      value={paperSize}
-                      onChange={(e) => setPaperSize(e.target.value)}
-                    >
-                      <option value="A4">A4</option>
-                      <option value="Letter">Letter</option>
-                      <option value="16:9">16:9</option>
-                    </select>
-                  </div>
-
-                  <div 
-                    className="neo-switch-container" 
-                    style={{ alignSelf: 'center', marginTop: '12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
-                  >
-                    <SkeuomorphicToggle 
-                      checked={duplex} 
-                      onChange={(val) => setDuplex(val)}
-                      size="md"
-                      label="Double Sided"
-                      description="Print on both sides"
-                      ariaLabel="Double Sided Printing"
-                    />
-                  </div>
-                </div>
-
-                {/* Pricing Breakdown */}
-                <div className="neo-card-inset" style={{ padding: '16px', borderRadius: '14px', marginBottom: '14px' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-                    <span style={{ color: 'var(--text-secondary)', fontSize: '0.88rem' }}>Files:</span>
-                    <span style={{ fontWeight: 600, fontSize: '0.88rem' }}>{files.length} file(s)</span>
-                  </div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-                    <span style={{ color: 'var(--text-secondary)', fontSize: '0.88rem' }}>Total pages to print:</span>
-                    <span style={{ fontWeight: 600, fontSize: '0.88rem' }}>{totalPagesToPrint} page(s)</span>
-                  </div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px', paddingBottom: '8px', borderBottom: '1px solid var(--border-color)' }}>
-                    <span style={{ color: 'var(--text-secondary)', fontSize: '0.88rem' }}>Rate per page:</span>
-                    <span style={{ fontWeight: 600, fontSize: '0.88rem' }}>₹{printType === 'color' ? shop.color_rate : shop.bw_rate}</span>
-                  </div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <span style={{ fontWeight: 700, fontSize: '1rem' }}>Total Cost:</span>
-                    <span style={{ fontWeight: 800, fontSize: '1.5rem', color: 'var(--accent)' }}>₹{calculateTotal()}</span>
-                  </div>
-                </div>
-
-                {/* Cash Payment Banner */}
-                <div className="neo-card-inset" style={{ padding: '12px 14px', borderRadius: '12px', display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
-                  <Landmark size={20} style={{ color: 'var(--accent)', flexShrink: 0 }} />
-                  <div>
-                    <span style={{ fontSize: '0.82rem', fontWeight: 600 }}>Offline Cash / UPI at Counter</span>
-                    <p style={{ fontSize: '0.74rem', color: 'var(--text-secondary)', margin: 0 }}>
-                      Pay at the shop counter when picking up your physical prints.
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-
-        </div>
-      </div>
+        {reading && <p role="status" className="customer-inline-status"><RefreshCw size={18} className="spin" />{reading}</p>}
+        {notice && <div role="alert" className="customer-notice"><AlertCircle size={19} /><p>{notice}</p></div>}
+        {!!files.length && <div className="selected-files"><h3>{files.length} {files.length === 1 ? 'file' : 'files'} selected</h3>{files.map(entry => <div className="selected-file neo-card-inset" key={entry.id}><FileText size={21} /><div><strong>{entry.file.name}</strong><small>{entry.type === 'zip' ? 'ZIP · price confirmed by the shop' : `${entry.pages} ${entry.pages === 1 ? 'page' : 'pages'}`} · {(entry.file.size / 1048576).toFixed(1)} MB</small></div><button className="neo-btn icon-button" aria-label={`Remove ${entry.file.name}`} disabled={locked || sending || Boolean(reading)} onClick={() => removeFile(entry.id)}><X size={18} /></button></div>)}</div>}
+      </>}
+      {step === 2 && current && <>
+        <h2>Check your documents</h2><p>Swipe through the file buttons to review each document.</p>
+        <div className="customer-file-tabs" aria-label="Selected documents">{files.map((entry, index) => <button key={entry.id} className={`neo-btn ${activeIndex === index ? 'neo-btn-primary' : ''}`} aria-pressed={activeIndex === index} onClick={() => { setActiveIndex(index); setPreviewPage(1); }}>{index + 1}. {entry.file.name}</button>)}</div>
+        <div className="customer-preview">{current.type === 'zip' ? <div><FileText size={38} /><h3>ZIP ready for the counter</h3><p>The ZIP will be sent unchanged. Staff download it, check the contents and confirm the price with you.</p></div> : current.type === 'image' ? <img src={current.url} alt={`Document preview: ${current.file.name}`} /> : <><canvas ref={canvasRef} hidden={previewState !== 'ready'} aria-label={`Preview of page ${previewPage}`} />{previewState === 'loading' && <p role="status">Preparing preview…</p>}{previewState === 'unavailable' && <p>Preview is unavailable here. Your original document can still be submitted.</p>}</>}</div>
+        {current.type !== 'zip' && <>
+        <div className="preview-controls"><button className="neo-btn icon-button" aria-label="Previous page" disabled={previewPage <= 1 || previewState === 'loading'} onClick={() => setPreviewPage(value => value - 1)}><ChevronLeft size={20} /></button><span>Page {previewPage} of {current.pages}</span><button className="neo-btn icon-button" aria-label="Next page" disabled={previewPage >= current.pages || previewState === 'loading'} onClick={() => setPreviewPage(value => value + 1)}><ChevronRight size={20} /></button></div>
+        <a className="neo-btn preview-original" href={current.url} target="_blank" rel="noopener noreferrer">Open original preview</a>
+        </>}
+      </>}
+      {step === 3 && <>
+        <h2>{onlyArchives ? 'Review & send' : 'Print options & total'}</h2><p>{onlyArchives ? 'The shop downloads your ZIP unchanged. Confirm its contents and price at the counter.' : 'Print settings apply to PDFs and images. Pay the counter directly.'}</p>
+        {hasArchives && !onlyArchives && <p>ZIP files are download-only and have no print settings. Their price is confirmed separately at the counter.</p>}
+        {!onlyArchives && <>
+        <fieldset disabled={sending || locked} className="customer-options"><legend className="visually-hidden">Print settings for all files</legend>
+          <div><span className="neo-label">Printing</span><div className="customer-choice-row"><button type="button" className={`neo-btn ${printType === 'bw' ? 'neo-btn-primary' : ''}`} aria-pressed={printType === 'bw'} onClick={() => setPrintType('bw')}>B&amp;W · {money(shop.bw_rate)}/page</button><button type="button" className={`neo-btn ${printType === 'color' ? 'neo-btn-primary' : ''}`} aria-pressed={printType === 'color'} disabled={shop.color_enabled === 0} onClick={() => setPrintType('color')}>{shop.color_enabled === 0 ? 'Colour unavailable' : `Colour · ${money(shop.color_rate)}/page`}</button></div></div>
+          <label className="customer-field">Pages<select className="neo-select" value={rangeType} onChange={event => setRangeType(event.target.value)}><option value="all">All pages</option><option value="odd">Odd pages</option><option value="even">Even pages</option><option value="custom">Custom range</option></select></label>
+          {rangeType === 'custom' && <label className="customer-field">Page range for every file<input className="neo-input" value={rangeCustom} placeholder="For example 1-3, 5" onChange={event => setRangeCustom(event.target.value)} aria-invalid={Boolean(rangeError)} aria-describedby="range-help" /><small id="range-help">Every file must contain all the page numbers entered.</small></label>}
+          <label className="customer-field">Paper size<select className="neo-select" value={paperSize} onChange={event => setPaperSize(event.target.value)}><option value="A4">A4</option><option value="Letter">Letter</option><option value="16:9">16:9</option></select></label>
+          <SkeuomorphicToggle checked={duplex} onChange={setDuplex} label="Double sided" description="Ask the counter to confirm printer support." disabled={sending || locked} />
+        </fieldset>
+        {rangeError && <p role="alert" className="customer-error">{rangeError}</p>}
+        </>}
+        <UploadFileDetails files={files} estimates={estimates} printType={printType} paperSize={paperSize} rate={rate} totalPages={totalPages} totalAmount={totalAmount} />
+        <p className="customer-trust"><ShieldCheck size={18} />Private files. Only this counter can access them.</p>
+        {sendError && <div role="alert" className="customer-notice"><AlertCircle size={21} /><div><strong>We couldn’t confirm your order</strong><p>{sendError}</p><p>Your selected files are still here. Retry to continue; a confirmed order won’t be created twice.</p>{locked && <small>Your original settings are kept while we recover the confirmation.</small>}</div></div>}
+      </>}
+    </section>
+    <div className="customer-actions">
+      {step > 1 && <button className="neo-btn" disabled={sending || locked} onClick={() => { setStep(value => value - 1); setSendError(''); }}><ChevronLeft size={18} />Back</button>}
+      <FloatingDotsButton disabled={sending || Boolean(reading) || !files.length || (step === 3 && Boolean(rangeError) && !locked)} onClick={() => step === 3 ? placeOrder() : setStep(value => value + 1)} icon={step === 3 ? onlyArchives ? <Upload size={20} /> : <Printer size={20} /> : <ChevronRight size={20} />}>{step === 1 ? 'Next: Check files' : step === 2 ? onlyArchives ? 'Next: Review & send' : 'Next: Print options' : sending ? 'Sending your order…' : sendError ? 'Retry submission' : hasArchives ? `Send files · ${onlyArchives ? 'price at counter' : `${money(totalAmount)} + ZIP price at counter`}` : `Send ${files.length === 1 ? 'file' : 'files'} · ${money(totalAmount)}`}</FloatingDotsButton>
     </div>
-  );
-};
-
-export default UploadPage;
+    <p className="customer-footnote">Files upload only when you tap Send. Unhandled orders are cancelled after 10 minutes and their files deleted. Completed or manually cancelled documents are deleted after another 10 minutes. Keep your originals.</p>
+  </main>;
+}

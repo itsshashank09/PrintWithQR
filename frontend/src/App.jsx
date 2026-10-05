@@ -1,124 +1,70 @@
-import React, { useState, useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { Sun, Moon } from 'lucide-react';
+import React, { lazy, Suspense, useState, useEffect } from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import Landing from './pages/Landing';
 import Login from './pages/Login';
 import Register from './pages/Register';
-import Payment from './pages/Payment';
-import Dashboard from './pages/Dashboard';
-import Profile from './pages/Profile';
-import UploadPage from './pages/Upload';
-import OrderStatus from './pages/OrderStatus';
-import Admin from './pages/Admin';
+import { MARKETING_PATHS, PRIVATE_ROBOTS } from '../seo/site.mjs';
+import ThemeToggle from './components/ThemeToggle';
+import LoadingSpinner from './components/LoadingSpinner';
+import { supabase } from './supabaseClient';
 
-import { SkeuomorphicToggle } from './components/SkeuomorphicToggle';
+const Payment = lazy(() => import('./pages/Payment'));
+const Dashboard = lazy(() => import('./pages/Dashboard'));
+const Profile = lazy(() => import('./pages/Profile'));
+const UploadPage = lazy(() => import('./pages/Upload'));
+const OrderStatus = lazy(() => import('./pages/OrderStatus'));
+const Admin = lazy(() => import('./pages/Admin'));
 
-// Global FAB theme toggler component
-const ThemeToggleButton = () => {
-  const [isDarkMode, setIsDarkMode] = useState(() => localStorage.getItem('theme') === 'dark');
-
+function PrivateMetadata() {
+  const { pathname } = useLocation();
   useEffect(() => {
-    if (isDarkMode) {
-      document.body.classList.add('dark-theme');
-      localStorage.setItem('theme', 'dark');
-    } else {
-      document.body.classList.remove('dark-theme');
-      localStorage.setItem('theme', 'light');
-    }
-  }, [isDarkMode]);
-
-  return (
-    <div 
-      className="theme-toggle-floating-container"
-      title={isDarkMode ? "Switch to Light Mode" : "Switch to Dark Mode"}
-    >
-      <SkeuomorphicToggle
-        size="sm"
-        checked={isDarkMode}
-        onChange={(val) => setIsDarkMode(val)}
-        onIcon={<Moon size={11} style={{ verticalAlign: 'middle' }} />}
-        offIcon={<Sun size={11} style={{ verticalAlign: 'middle' }} />}
-        ariaLabel={isDarkMode ? "Switch to Light Mode" : "Switch to Dark Mode"}
-      />
-    </div>
-  );
-};
-
-// Route wrapper to require login
-const ProtectedRoute = ({ children }) => {
-  const token = localStorage.getItem('token');
-  if (!token) {
-    return <Navigate to="/login" replace />;
-  }
-  return children;
-};
-
-// Route wrapper to require login for admin access
-const AdminRoute = ({ children }) => {
-  const token = localStorage.getItem('token');
-  if (!token) {
-    return <Navigate to="/login" replace />;
-  }
-  return children;
-};
-
-// Redirect root page to dashboard if logged in, else login
-const RootRedirect = () => {
-  const token = localStorage.getItem('token');
-  if (token) {
-    return <Navigate to="/dashboard" replace />;
-  }
-  return <Navigate to="/login" replace />;
-};
-
-const AppContent = () => {
-  return (
-    <Router>
-      <Routes>
-        {/* Public Landing & Partner Auth Routes */}
-        <Route path="/" element={<Landing />} />
-        <Route path="/home" element={<Landing />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
-        <Route path="/payment/:shopId" element={<Payment />} />
-        
-        {/* Protected Partner Routes */}
-        <Route 
-          path="/dashboard" 
-          element={
-            <ProtectedRoute>
-              <Dashboard />
-            </ProtectedRoute>
-          } 
-        />
-        <Route 
-          path="/profile" 
-          element={
-            <ProtectedRoute>
-              <Profile />
-            </ProtectedRoute>
-          } 
-        />
-        
-        {/* Dedicated Admin Portal Route */}
-        <Route path="/admin" element={<Admin />} />
-        
-        {/* Public Customer Routes */}
-        <Route path="/shop/:shopId" element={<UploadPage />} />
-        <Route path="/order/:orderId" element={<OrderStatus />} />
-        
-        {/* Fallback */}
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
-      <ThemeToggleButton />
-    </Router>
-  );
-};
-
-function App() {
-  return (
-    <AppContent />
-  );
+    document.body.classList.toggle('customer-view', /^\/(shop|order)\//.test(pathname));
+    document.title = 'PrintWithQR – Private application';
+    let robots = document.querySelector('meta[name="robots"]');
+    if (!robots) { robots = document.createElement('meta'); robots.name = 'robots'; document.head.append(robots); }
+    robots.content = PRIVATE_ROBOTS;
+    document.querySelectorAll('link[rel="canonical"], script[type="application/ld+json"]').forEach(node => node.remove());
+  }, [pathname]);
+  return null;
 }
 
-export default App;
+function ProtectedRoute({ children }) {
+  const [state, setState] = useState('loading');
+  useEffect(() => {
+    let active = true;
+    let authEventVersion = 0;
+    const { data } = supabase.auth.onAuthStateChange((event, session) => {
+      if (!active) return;
+      if (event === 'INITIAL_SESSION' || event === 'SIGNED_IN' || event === 'SIGNED_OUT' || event === 'TOKEN_REFRESHED') {
+        authEventVersion += 1;
+        setState(session ? 'authenticated' : 'anonymous');
+      }
+    });
+    const initialVersion = authEventVersion;
+    supabase.auth.getSession().then(({ data: sessionData, error }) => {
+      if (active && authEventVersion === initialVersion) {
+        setState(!error && sessionData?.session ? 'authenticated' : 'anonymous');
+      }
+    }).catch(() => { if (active && authEventVersion === initialVersion) setState('anonymous'); });
+    return () => { active = false; data?.subscription?.unsubscribe(); };
+  }, []);
+  if (state === 'loading') return <LoadingSpinner label="Checking your sign-in" />;
+  if (state !== 'authenticated') return <Navigate to="/login" replace />;
+  return children;
+}
+
+export default function App() {
+  return <Router><PrivateMetadata /><Suspense fallback={<LoadingSpinner label="Loading PrintWithQR" />}><Routes>
+    {MARKETING_PATHS.map(path => <Route key={path} path={path} element={<Landing path={path} />} />)}
+    <Route path="/home" element={<Landing />} />
+    <Route path="/login" element={<Login />} />
+    <Route path="/register/start" element={<Register />} />
+    <Route path="/payment/:shopId" element={<ProtectedRoute><Payment /></ProtectedRoute>} />
+    <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+    <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+    <Route path="/admin" element={<Admin />} />
+    <Route path="/shop/:shopId" element={<UploadPage />} />
+    <Route path="/order/:orderId" element={<OrderStatus />} />
+    <Route path="*" element={<main className="neo-container"><h1>Page not found</h1><a href="/">Return to PrintWithQR</a></main>} />
+  </Routes></Suspense><ThemeToggle /></Router>;
+}

@@ -1,9 +1,10 @@
-import FingerprintJS from '@fingerprintjs/fingerprintjs';
-import { load as loadBotD } from '@fingerprintjs/botd';
-
-const fpPromise = FingerprintJS.load();
+let fpPromise;
 
 export async function getDeviceFingerprint() {
+  const [{ default: FingerprintJS }, { load: loadBotD }] = await Promise.all([
+    import('@fingerprintjs/fingerprintjs'), import('@fingerprintjs/botd')
+  ]);
+  fpPromise ||= FingerprintJS.load();
   const fpAgent = await fpPromise;
   const fpResult = await fpAgent.get();
 

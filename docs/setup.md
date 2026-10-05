@@ -1,43 +1,37 @@
-# Local setup and configuration
+# Local setup
 
-## Frontend preview
+## Install and preview
 
-From `frontend/`, run `npm ci` and `npm run dev`. The committed lockfile determines the installed versions. The installed Vite toolchain requires a newer Node version than the old README and deployment workflow specified; use Node 22.12+.
+Use Node.js 24 and npm. From the repository root, run `npm run setup`, then `npm run dev:ui` for the interface only. Run `npm run dev` for the Vercel development environment on port 3000. Vite alone does not provide the API; its standalone proxy expects a backend on port 5000.
 
-Copy `frontend/.env.example` to `frontend/.env.local` and set the public Supabase values for a development project. The current client also contains a fallback to the original public project configuration. Supply your own values before testing any data flows; do not use the live project for development.
+Create a separate Supabase project and apply the [fresh-install baseline](../supabase/README.md). Never use the production project for local tests. Copy `frontend/.env.example` to `frontend/.env.local` and supply your development values. PHP-style or client-side route guards do not replace database policies.
 
-## Environment variables
+## Environment
 
-| Variable | Where it is used | Purpose |
+| Variable | Scope | Purpose |
 | --- | --- | --- |
-| `VITE_SUPABASE_URL` | Browser build | Development Supabase project URL |
-| `VITE_SUPABASE_PUBLISHABLE_KEY` | Browser build | Public Supabase key; `VITE_SUPABASE_ANON_KEY` is also supported |
-| `VITE_API_URL` | Some payment requests | Optional API base URL; other screens still use relative `/api` paths |
-| `VITE_RAZORPAY_KEY_ID` | Browser checkout | Optional public key ID; normally returned by the API |
-| `SUPABASE_URL` | API | Same project's server URL |
-| `SUPABASE_SERVICE_ROLE_KEY` | API | Privileged server key, under the name currently read by the handlers |
-| `SUPABASE_ANON_KEY` | API/Vite compatibility | Optional legacy public key fallback |
-| `RAZORPAY_KEY_ID`, `RAZORPAY_KEY_SECRET` | API | Gateway credentials; use test mode during development |
-| `REGISTRATION_SECRET` | API | HMAC secret for registration signals |
-| `REQUEST_LOG_SECRET` | API | HMAC secret for login request logs |
-| `ORDER_SESSION_SECRET` | API | HMAC secret for shop-bound order tokens |
-| `CRON_SECRET` | API | Authorizes the cleanup handler |
-| `ALLOWED_ORIGIN` | API | Additional allowed frontend origin |
+| `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY` | Browser | Development Supabase URL and public key; `VITE_SUPABASE_PUBLISHABLE_KEY` is also supported |
+| `VITE_API_URL` | Browser | API base; normally `/api` |
+| `VITE_RAZORPAY_KEY_ID` | Browser | Optional public checkout key ID |
+| `SUPABASE_URL`, `SUPABASE_ANON_KEY` | Server | Same development project's URL and public key |
+| `SUPABASE_SERVICE_ROLE_KEY` | Server | Privileged key used only by authorized API handlers |
+| `RAZORPAY_KEY_ID`, `RAZORPAY_KEY_SECRET` | Server | Use Razorpay test mode in development |
+| `REGISTRATION_SECRET` | Server | Hashes registration abuse signals |
+| `REQUEST_LOG_SECRET` | Server | Hashes request/rate-limit identifiers |
+| `ORDER_SESSION_SECRET` | Server | Signs compatibility order capabilities |
+| `PRINT_CLEANUP_SECRET` | Server | Authenticates file cleanup; `CRON_SECRET` is a fallback |
+| `ALLOWED_ORIGIN` | Server | Additional frontend origin, such as `http://localhost:3000` |
 
-Generate separate random server secrets, for example with `node -e "console.log(require('node:crypto').randomBytes(32).toString('hex'))"`. Keep secret values out of `VITE_*` variables and out of source control. Public Supabase keys rely on database and Storage policies for authorization; they do not protect data on their own. See [Supabase's key documentation](https://supabase.com/docs/guides/getting-started/api-keys).
+Generate a different random value for each signing secret. Keep server secrets out of `VITE_*` variables, Git and browser bundles. The client has no fallback connection to production when its public configuration is missing.
 
-## Database and Storage
+## Deployment layouts
 
-`schema_update.sql` alters an existing `shops` table and creates `registration_attempts`. It does **not** create the complete application database. The code also references `orders` and `request_logs`, and relies on Supabase Auth users, a `print-jobs` Storage bucket and Realtime publication settings.
+The existing Vercel project is linked to this repository with no root-directory override. Repository-root deployment uses `vercel.json` and outputs `frontend/dist`. A project deliberately rooted in `frontend/` uses `frontend/vercel.json` and outputs `dist`. Both layouts use the same checked API source.
 
-The base schema, complete row policies, Storage policies and publication configuration are not currently versioned. Obtain a reviewed schema export for a development project before trying the complete workflow. Do not run the incremental file against an empty database and expect a working installation. Do not enable broad anonymous access as a workaround.
+Main-branch automatic Git deployments are disabled in both configurations. The GitHub deployment workflow is manual, defaults to preview and requires an explicit production target. A future production release should be reviewed separately from a source or documentation merge.
 
-## API development
+## File cleanup
 
-`npm run dev` only starts Vite. The configured proxy forwards `/api` to `http://localhost:5000`, but no local backend process is supplied. For a complete local environment, use a Vercel development setup configured for either the repository root or `frontend/`, and adjust the frontend proxy to its actual port. Avoid proxy loops if the Vercel development command itself starts Vite.
+Pending jobs expire after ten minutes. Completed or manually cancelled files become eligible after ten minutes. The authenticated `/api/cleanup` worker removes eligible objects through the Storage API and preserves order rows. Timing depends on worker invocations and successful deletion; it is not an exact deletion deadline.
 
-The two `vercel.json` files support those two project-root layouts. The root build outputs `frontend/dist`; a frontend-root deployment uses `dist`. Verify which root your Vercel project uses before changing deployment settings. Do not run the production deploy command just to preview the interface.
-
-## Cleanup
-
-Both deployment configurations schedule `/api/cleanup` daily. The handler removes documents older than five minutes **when invoked** and orders from before the current day. The daily schedule is not a five-minute deletion guarantee. Use disposable files in a development bucket when checking this behaviour.
+The recovered `configure_print_cleanup` SQL function references the existing production domain. **Do not invoke its configure action in development.** No cron job or Vault secret is installed by the baseline. The isolated test invokes the handler directly with a random test secret. For another hosted environment, provision an environment-specific scheduler and target URL separately.

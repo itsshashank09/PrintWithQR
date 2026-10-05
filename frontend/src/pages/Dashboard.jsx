@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useRef } from 'react';
+import { platform } from '../utils/platform';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import QRCode from 'qrcode';
 import { 
@@ -13,6 +14,8 @@ import {
   FloatingDotsButton, 
   GradientBeamButton 
 } from '../components/RectangleButtons';
+import LoadingSpinner from '../components/LoadingSpinner';
+import PrintQueue from '../components/PrintQueue';
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -37,33 +40,11 @@ const Dashboard = () => {
   const [hasPaidSubscription, setHasPaidSubscription] = useState(false);
   const [isFreePlan, setIsFreePlan] = useState(true);
   const [upgradingInDashboard, setUpgradingInDashboard] = useState(false);
-  const [timeTick, setTimeTick] = useState(Date.now());
 
   const shopId = localStorage.getItem('shopId');
   const shopName = localStorage.getItem('shopName');
 
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setTimeTick(Date.now());
-    }, 1000);
-    return () => clearInterval(interval);
-  }, []);
-
-  const getPrintingTimers = () => {
-    try {
-      return JSON.parse(localStorage.getItem(`printing_timers_${shopId}`) || '{}');
-    } catch (e) {
-      return {};
-    }
-  };
-
-  const savePrintingTimer = (orderId) => {
-    const timers = getPrintingTimers();
-    timers[orderId] = Date.now();
-    localStorage.setItem(`printing_timers_${shopId}`, JSON.stringify(timers));
-  };
-
-  const generatePosterComposite = (qrUrl) => {
+  const generatePosterComposite = useCallback((qrUrl) => {
     return new Promise((resolve) => {
       const posterImg = new Image();
       posterImg.crossOrigin = 'anonymous';
@@ -98,7 +79,7 @@ const Dashboard = () => {
 
       posterImg.onerror = () => resolve('');
     });
-  };
+  }, []);
 
 
   const getLocalOrderHistory = () => {
@@ -146,18 +127,17 @@ const Dashboard = () => {
 
   const fetchData = async () => {
     try {
-      const token = localStorage.getItem('token');
-      if (!token) return;
-
-      // 1. Fetch active orders from Supabase orders table
-      const { data: dbOrders, error: dbError } = await supabase
-        .from('orders')
-        .select('*')
-        .eq('shop_id', shopId)
-        .order('created_at', { ascending: false });
+      // Load independent dashboard data at the same time.
+      const [{ data: dbOrders, error: dbError }, { data: currentShop, error: shopError }] = await Promise.all([
+        supabase.from('orders').select('*').eq('shop_id', shopId).order('created_at', { ascending: false }),
+        supabase.from('shops').select('is_paid, is_admin, subscription_expires_at, subscription_status, free_prints_allowed, free_prints_used').eq('id', shopId).single()
+      ]);
 
       if (dbError) {
         throw new Error(dbError.message || 'Failed to fetch orders from database.');
+      }
+      if (shopError) {
+        throw new Error(shopError.message || 'Failed to fetch business details.');
       }
 
       setOrders(dbOrders || []);
@@ -174,12 +154,6 @@ const Dashboard = () => {
       triggerAutoCleanup(shopId, dbOrders || []);
 
       // Check live payment & admin status from database
-      const { data: currentShop } = await supabase
-        .from('shops')
-        .select('is_paid, is_admin, subscription_expires_at, subscription_status, free_prints_allowed, free_prints_used')
-        .eq('id', shopId)
-        .single();
-      
       if (currentShop) {
         const expiryDate = currentShop.subscription_expires_at ? new Date(currentShop.subscription_expires_at) : null;
         const now = new Date();
@@ -218,22 +192,6 @@ const Dashboard = () => {
         }
       }
 
-      // Generate QR Code & Printable Official Poster
-      const customerUrl = `${window.location.origin}/shop/${shopId}`;
-      const qrDataUrl = await QRCode.toDataURL(customerUrl, {
-        width: 400,
-        margin: 2,
-        color: {
-          dark: '#1a1a1a',
-          light: '#ffffff'
-        }
-      });
-      setQrCodeUrl(qrDataUrl);
-
-      const posterUrl = await generatePosterComposite(qrDataUrl);
-      if (posterUrl) {
-        setPosterDataUrl(posterUrl);
-      }
     } catch (err) {
       setError(err.message);
     } finally {
@@ -242,8 +200,7 @@ const Dashboard = () => {
   };
 
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    if (!token) {
+    if (!shopId) {
       navigate('/login');
       return;
     }
@@ -281,46 +238,31 @@ const Dashboard = () => {
     };
   }, [shopId, navigate]);
 
-  const handleUpdateStatus = async (orderId, newStatus) => {
-    try {
-      // Update order status directly in Supabase
-      const { error: dbError } = await supabase
-        .from('orders')
-        .update({ status: newStatus })
-        .eq('id', orderId);
-
-      if (dbError) {
-        throw new Error(dbError.message || 'Failed to update order status.');
+  useEffect(() => {
+    if (!shopId) return;
+    let active = true;
+    const createQrArtwork = async () => {
+      try {
+        const qrDataUrl = await QRCode.toDataURL(`${window.location.origin}/shop/${shopId}`, {
+          width: 400,
+          margin: 2,
+          color: { dark: '#1a1a1a', light: '#ffffff' }
+        });
+        if (!active) return;
+        setQrCodeUrl(qrDataUrl);
+        const posterUrl = await generatePosterComposite(qrDataUrl);
+        if (active && posterUrl) setPosterDataUrl(posterUrl);
+      } catch (err) {
+        console.error('Could not prepare shop QR artwork:', err);
       }
-      
-      fetchData();
-    } catch (err) {
-      alert(err.message);
-    }
-  };
+    };
+    createQrArtwork();
+    return () => { active = false; };
+  }, [shopId, generatePosterComposite]);
 
-  const getSignedFileUrl = async (filePath) => {
-    if (!filePath) return '';
-    try {
-      let storagePath = filePath;
-      if (filePath.includes('/print-jobs/')) {
-        storagePath = filePath.split('/print-jobs/').pop();
-      } else if (filePath.startsWith('http')) {
-        const urlParts = filePath.split('/');
-        storagePath = urlParts.slice(-2).join('/');
-      }
-
-      const { data, error } = await supabase.storage
-        .from('print-jobs')
-        .createSignedUrl(storagePath, 3600); // 1-hour secure Signed URL
-
-      if (error || !data?.signedUrl) {
-        return filePath;
-      }
-      return data.signedUrl;
-    } catch (e) {
-      return filePath;
-    }
+  const getSignedFileUrl = async (orderId, index = 0) => {
+    try { return (await platform('file_url', { orderId, index })).url; }
+    catch { return ''; }
   };
 
   const parseOrderFiles = (order) => {
@@ -360,9 +302,11 @@ const Dashboard = () => {
   const handleSaveFile = async (order) => {
     const { paths, names } = parseOrderFiles(order);
     for (let i = 0; i < paths.length; i++) {
-      const fileUrl = await getSignedFileUrl(paths[i]);
+      const fileUrl = await getSignedFileUrl(order.id, i);
+      if (!fileUrl) { alert('The document is unavailable or access was denied. Please refresh and try again.'); return; }
       try {
         const response = await fetch(fileUrl);
+        if (!response.ok) throw new Error('Document download failed.');
         const blob = await response.blob();
         const blobUrl = URL.createObjectURL(blob);
         const link = document.createElement('a');
@@ -380,10 +324,9 @@ const Dashboard = () => {
 
   const handleBrowserPrint = async (order) => {
     const { paths, names } = parseOrderFiles(order);
-    await handleUpdateStatus(order.id, 'Printing');
-    savePrintingTimer(order.id);
-
-    const signedUrls = await Promise.all(paths.map(p => getSignedFileUrl(p)));
+    const prepared = await platform('file_urls', { files: paths.map((_, index) => ({ orderId: order.id, index })), startPrinting: true });
+    if (!prepared.printingStarted || prepared.files?.length !== paths.length) throw new Error('The document is unavailable or printing access was denied. Refresh and retry.');
+    const signedUrls = prepared.files.map(file => file.url);
     const allImages = names.every(name => /\.(jpg|jpeg|png|webp|gif|bmp)$/i.test(name));
 
     if (allImages) {
@@ -404,7 +347,9 @@ const Dashboard = () => {
         <!DOCTYPE html>
         <html>
         <head>
-          <title>Print Job - ${order.id}</title>
+          <meta name="robots" content="noindex, nofollow, nosnippet, noimageindex">
+          <meta name="referrer" content="no-referrer">
+          <title>PrintWithQR – Print document</title>
           <style>
             html, body {
               margin: 0;
@@ -534,231 +479,27 @@ const Dashboard = () => {
     }
   };
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    await supabase.auth.signOut({ scope: 'local' });
     localStorage.removeItem('token');
     localStorage.removeItem('shopId');
     localStorage.removeItem('shopName');
     navigate('/');
   };
 
-  // Pre-configured dynamic Python Print Agent script generator
   const downloadPrintAgent = () => {
-    const backendUrl = SOCKET_URL;
-    const agentScript = `import os
-import sys
-import time
-import requests
-import socketio
-from PIL import Image, ImageWin
-
-# Configuration
-API_URL = "${SOCKET_URL}/api"
-SOCKET_URL = "${SOCKET_URL}"
-SHOP_ID = "${shopId}"
-
-# Attempt to import win32print for system printer access on Windows
-try:
-    import win32print
-    import win32ui
-    import win32gui
-    import fitz  # PyMuPDF for PDF rendering
-    WIN_ENABLED = True
-except ImportError:
-    WIN_ENABLED = False
-    print("WARNING: Windows printing libraries not found. Running in mock mode.")
-    print("To install, run: pip install pywin32 PyMuPDF Pillow requests python-socketio[client]")
-
-sio = socketio.Client()
-
-def get_printers():
-    if not WIN_ENABLED:
-        return [{"name": "Mock Default PDF Printer", "type": "both"}]
-    
-    printers = []
-    try:
-        flags = win32print.PRINTER_ENUM_LOCAL | win32print.PRINTER_ENUM_CONNECTIONS
-        printer_list = win32print.EnumPrinters(flags, None, 4)
-        
-        # Keywords to filter out virtual document writers / fax
-        virtual_keywords = ['onenote', 'print to pdf', 'xps document writer', 'fax']
-        
-        for p in printer_list:
-            name = p.get('pPrinterName', '')
-            if name:
-                # Skip virtual printers
-                if any(kw in name.lower() for kw in virtual_keywords):
-                    continue
-                p_type = 'color' if any(x in name.lower() for x in ['color', 'photo', 'inkjet', 'deskjet']) else 'bw'
-                printers.append({"name": name, "type": p_type})
-    except Exception as e:
-        print(f"Error reading system printers: {e}")
-        
-    return printers
-
-def register_printers():
-    printers = get_printers()
-    print(f"Registering system printers: {[p['name'] for p in printers]}")
-    try:
-        res = requests.post(f"{API_URL}/agent/register-printers", json={
-            "shop_id": SHOP_ID,
-            "printers": printers
-        })
-        if res.status_code == 200:
-            print("Printers successfully registered with server.")
-        else:
-            print(f"Failed to register printers: {res.text}")
-    except Exception as e:
-        print(f"Error registering printers: {e}")
-
-def print_document_via_dc(file_path, printer_name, duplex_setting=0):
-    if not WIN_ENABLED:
-        print(f"[MOCK] Printing {file_path} to {printer_name} (Duplex: {duplex_setting}).")
-        return True
-
-    hprinter = win32print.OpenPrinter(printer_name)
-    try:
-        properties = win32print.GetPrinter(hprinter, 2)
-        devmode = properties["pDevMode"]
-        
-        target_duplex = 2 if duplex_setting == 1 else 1
-        devmode.Duplex = target_duplex
-        devmode.Fields |= 0x1000
-        
-        win32print.DocumentProperties(0, hprinter, printer_name, devmode, devmode, 10)
-        
-        hdc_handle = win32gui.CreateDC("WINSPOOL", printer_name, devmode)
-        hdc = win32ui.CreateDCFromHandle(hdc_handle)
-        
-        hdc.StartDoc("PrintWithQR Job")
-        
-        ext = os.path.splitext(file_path)[1].lower()
-        if ext == '.pdf':
-            doc = fitz.open(file_path)
-            for page_num in range(len(doc)):
-                print(f"  Rendering & spooling page {page_num + 1}/{len(doc)}...")
-                hdc.StartPage()
-                page = doc.load_page(page_num)
-                pix = page.get_pixmap(matrix=fitz.Matrix(2, 2))
-                img = Image.frombytes("RGB", [pix.width, pix.height], pix.samples)
-                draw_image_on_dc(hdc, img)
-                hdc.EndPage()
-        else:
-            hdc.StartPage()
-            img = Image.open(file_path)
-            draw_image_on_dc(hdc, img)
-            hdc.EndPage()
-            
-        hdc.EndDoc()
-        win32gui.DeleteDC(hdc_handle)
-        return True
-    except Exception as e:
-        print(f"Error spooling document: {e}")
-        raise e
-    finally:
-        try:
-            win32print.ClosePrinter(hprinter)
-        except Exception:
-            pass
-
-def draw_image_on_dc(hdc, img):
-    print_w = hdc.GetDeviceCaps(8)
-    print_h = hdc.GetDeviceCaps(10)
-    img_w, img_h = img.size
-    ratio = min(print_w / img_w, print_h / img_h)
-    new_w = int(img_w * ratio)
-    new_h = int(img_h * ratio)
-    x1 = (print_w - new_w) // 2
-    y1 = (print_h - new_h) // 2
-    x2 = x1 + new_w
-    y2 = y1 + new_h
-    dib = ImageWin.Dib(img)
-    dib.draw(hdc.GetSafeHdc(), (x1, y1, x2, y2))
-
-@sio.event
-def connect():
-    print("Connected to PrintWithQR Socket Server.")
-    sio.emit("joinAgent", SHOP_ID)
-    register_printers()
-
-@sio.on("newPrintJob")
-def on_new_print_job(data):
-    job_id = data.get("id")
-    file_name = data.get("fileName")
-    file_path_rel = data.get("filePath")
-    target_printer = data.get("printerId") # Discovered printer name selected by owner
-    pages = data.get("pages")
-    duplex = data.get("duplex", 0)
-    print_type = data.get("printType", "bw")
-    
-    file_url = f"{SOCKET_URL}{file_path_rel}"
-    print("\\n" + "="*50)
-    print(f"NEW PRINT JOB DETECTED: {job_id}")
-    print(f"File Name: {file_name}")
-    print(f"Pages: {pages}")
-    print(f"Print Type: {print_type.upper()}")
-    print(f"Double Sided: {'Yes' if duplex == 1 else 'No'}")
-    print(f"Target Printer: {target_printer or 'Default'}")
-    print("="*50)
-    
-    print("Direct printing active. Initializing spooler...")
-    print("Downloading file...")
-    try:
-        r = requests.get(file_url)
-        temp_dir = os.path.join(os.path.expanduser('~'), 'Downloads', 'PrintWithQRJobs')
-        if not os.path.exists(temp_dir):
-            os.makedirs(temp_dir)
-            
-        temp_file_path = os.path.join(temp_dir, f"{job_id}_{file_name}")
-        with open(temp_file_path, 'wb') as f:
-            f.write(r.content)
-            
-        print(f"Saved to: {temp_file_path}")
-        print("Sending to Windows spooler...")
-        
-        printer_to_use = target_printer if target_printer else win32print.GetDefaultPrinter()
-        print_document_via_dc(temp_file_path, printer_to_use, duplex)
-            
-        print("Spool completed. Marking order as Completed.")
-        requests.put(f"{API_URL}/owner/order-status", json={
-            "orderId": job_id,
-            "status": "Completed"
-        }, headers={"Authorization": "Bearer AGENT_BYPASS"})
-    except Exception as e:
-        print(f"Error executing print job: {e}")
-
-@sio.event
-def disconnect():
-    print("Disconnected from server.")
-
-if __name__ == "__main__":
-    print("Starting PrintWithQR PC Agent...")
-    try:
-        sio.connect(SOCKET_URL)
-        sio.wait()
-    except KeyboardInterrupt:
-        print("\\nExiting Print Agent.")
-        sys.exit(0)
-    except Exception as e:
-        print(f"Connection error: {e}")
-`;
-
-    const blob = new Blob([agentScript], { type: 'text/plain' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = 'agent.py';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    setActiveTab('guide');
+    alert('Use the dashboard Print button to open the authorized document, choose your connected printer, then mark the order Completed after printing. A desktop auto-print agent is not connected to this deployment.');
   };
 
   const handleDownloadStartupScript = () => {
+    const dashboardUrl = `${window.location.origin}/dashboard`;
     const batContent = `@echo off
 echo Setting up PrintWithQR to open on startup...
 set STARTUP_FOLDER=%APPDATA%\\Microsoft\\Windows\\Start Menu\\Programs\\Startup
-echo start https://www.printwithqr.in/dashboard > "%STARTUP_FOLDER%\\PrintWithQR_Startup.bat"
+echo start ${dashboardUrl} > "%STARTUP_FOLDER%\\PrintWithQR_Startup.bat"
 echo Setup complete! PrintWithQR will now open automatically every time you turn on your PC.
-start https://www.printwithqr.in/dashboard
+start ${dashboardUrl}
 pause`;
 
     const blob = new Blob([batContent], { type: 'text/plain' });
@@ -779,7 +520,7 @@ pause`;
         <div className="logo-container" style={{ alignItems: 'flex-start' }}>
           <Printer size={46} className="neo-upload-icon" style={{ animation: 'none', marginTop: '6px' }} />
           <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-            <span style={{ fontSize: '2.2rem', fontWeight: '900', color: 'var(--accent-color)', letterSpacing: '-0.5px', lineHeight: '1', marginBottom: '4px' }}>PrintWithQR.in</span>
+            <span style={{ fontSize: '2.2rem', fontWeight: '900', color: 'var(--accent-color)', letterSpacing: '-0.5px', lineHeight: '1', marginBottom: '4px' }}>PrintWithQR</span>
             <span className="logo-text" style={{ lineHeight: '1', color: 'var(--text-secondary)' }}>{shopName}</span>
           </div>
         </div>
@@ -794,9 +535,7 @@ pause`;
       </header>
 
       {loading ? (
-        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '50vh' }}>
-          <RefreshCw size={36} className="neo-upload-icon" />
-        </div>
+        <LoadingSpinner label="Loading dashboard" className="app-loading--dashboard" />
       ) : (
         <>
           {/* SPECIAL UPGRADE OFFER BANNER (During last 3 days of subscription) */}
@@ -960,123 +699,7 @@ pause`;
                     </button>
                   </div>
 
-                  {orders.filter(o => (o.status || 'Pending') === 'Pending' || o.status === 'Printing').length === 0 ? (
-                    <div style={{ textAlign: 'center', padding: '40px 20px', color: 'var(--text-secondary)' }}>
-                      No active print jobs in queue.
-                    </div>
-                  ) : (
-                    <div className="neo-table-wrapper">
-                      <table className="neo-table">
-                        <thead>
-                          <tr>
-                            <th>Order ID</th>
-                            <th>Details</th>
-                            <th>Pricing</th>
-                            <th>Status</th>
-                            <th>Actions</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {orders.filter(o => (o.status || 'Pending') === 'Pending' || o.status === 'Printing').map((o) => (
-                            <tr key={o.id}>
-                              <td style={{ fontWeight: 700, fontFamily: 'monospace' }}>{o.id}</td>
-                              <td>
-                                <div style={{ fontWeight: 600, maxWidth: '220px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={getOrderDisplayName(o)}>
-                                  {getOrderDisplayName(o)}
-                                </div>
-                                <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginTop: '4px' }}>
-                                  {(o.pages_to_print || 0)} pages • {(o.print_type || 'bw').toUpperCase()} • {(o.paper_size || 'A4')} • {o.duplex ? 'Double Sided' : 'Single Sided'}
-                                </div>
-                              </td>
-                              <td style={{ fontWeight: 600 }}>₹{(o.total_amount || 0)}</td>
-                              <td>
-                                <span className={`neo-badge status-${(o.status || 'Pending').toLowerCase()}`}>
-                                  {(o.status || 'Pending')}
-                                </span>
-                              </td>
-                              <td>
-                                <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                                  {(() => {
-                                    const timers = getPrintingTimers();
-                                    const printTime = timers[o.id];
-                                    const isWithin3Min = printTime && (timeTick - printTime < 3 * 60 * 1000);
-                                    const secondsLeft = printTime ? Math.max(0, Math.ceil((3 * 60 * 1000 - (timeTick - printTime)) / 1000)) : 0;
-                                    const currentStatus = o.status || 'Pending';
-
-                                    if (currentStatus === 'Pending') {
-                                      return (
-                                        <>
-                                          <button 
-                                            className="neo-btn" 
-                                            style={{ padding: '8px 12px', borderRadius: '10px' }}
-                                            onClick={() => handleSaveFile(o)}
-                                            title="Download/Save File to PC"
-                                          >
-                                            <Download size={14} /> Save
-                                          </button>
-                                          <button 
-                                            className="neo-btn neo-btn-primary" 
-                                            style={{ padding: '8px 12px', borderRadius: '10px' }}
-                                            onClick={() => handleBrowserPrint(o)}
-                                            title="Print via Browser (Supports Duplex/Both Sides)"
-                                          >
-                                            <Printer size={14} /> Print (Browser)
-                                          </button>
-                                          <button 
-                                            className="neo-btn neo-btn-danger" 
-                                            style={{ padding: '8px 12px', borderRadius: '10px' }}
-                                            onClick={() => handleUpdateStatus(o.id, 'Cancelled')}
-                                          >
-                                            <XCircle size={14} />
-                                          </button>
-                                        </>
-                                      );
-                                    }
-
-                                    if (currentStatus === 'Printing') {
-                                      return (
-                                        <>
-                                          {isWithin3Min && (
-                                            <>
-                                              <button 
-                                                className="neo-btn" 
-                                                style={{ padding: '8px 12px', borderRadius: '10px' }}
-                                                onClick={() => handleSaveFile(o)}
-                                                title="Download/Save File to PC"
-                                              >
-                                                <Download size={14} /> Save
-                                              </button>
-                                              <button 
-                                                className="neo-btn neo-btn-primary" 
-                                                style={{ padding: '8px 12px', borderRadius: '10px' }}
-                                                onClick={() => handleBrowserPrint(o)}
-                                                title={`Reprint (${Math.floor(secondsLeft / 60)}:${String(secondsLeft % 60).padStart(2, '0')})`}
-                                              >
-                                                <Printer size={14} /> Reprint
-                                              </button>
-                                            </>
-                                          )}
-                                          <button 
-                                            className="neo-btn neo-btn-success" 
-                                            style={{ padding: '8px 12px', borderRadius: '10px' }}
-                                            onClick={() => handleUpdateStatus(o.id, 'Completed')}
-                                          >
-                                            <CheckCircle size={14} /> Done
-                                          </button>
-                                        </>
-                                      );
-                                    }
-
-                                    return null;
-                                  })()}
-                                </div>
-                              </td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
-                  )}
+                  <PrintQueue orders={orders} refresh={fetchData} printPdf={handleBrowserPrint} savePdf={handleSaveFile} />
                 </div>
               )}
 
@@ -1127,11 +750,11 @@ pause`;
                                   {getOrderDisplayName(o)}
                                 </div>
                                 <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginTop: '4px' }}>
-                                  {(o.pages_to_print || 0)} pages • {(o.print_type || 'bw').toUpperCase()} • {o.paper_size || 'A4'} • {o.duplex ? 'Double Sided' : 'Single Sided'}
+                                  {o.print_options?.fileKind === 'zip' ? 'ZIP · download only' : <>{o.pages_to_print || 0} pages • {(o.print_type || 'bw').toUpperCase()} • {o.paper_size || 'A4'} • {o.duplex ? 'Double Sided' : 'Single Sided'}</>}
                                 </div>
                               </td>
                               <td style={{ fontWeight: 700, color: 'var(--accent-color)' }}>
-                                ₹{(o.total_amount || 0)}
+                                {o.print_options?.fileKind === 'zip' ? 'Price confirmed at counter' : `₹${o.total_amount || 0}`}
                               </td>
                               <td style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
                                 {o.created_at ? new Date(o.created_at).toLocaleString() : 'N/A'}
@@ -1153,7 +776,7 @@ pause`;
               {/* HOW TO USE TAB */}
               {activeTab === 'guide' && (
                 <div className="neo-card">
-                  <h2>How to Use the QR Print Platform</h2>
+                  <h2>How to Use PrintWithQR</h2>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', marginTop: '20px' }}>
                     <div style={{ display: 'flex', gap: '15px' }}>
                       <div style={{ width: '30px', height: '30px', borderRadius: '50%', background: 'var(--accent-light)', color: 'var(--accent-color)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, flexShrink: 0 }}>1</div>
@@ -1190,7 +813,7 @@ pause`;
                       <div>
                         <h4>Confirm & Run Print Dialog</h4>
                         <p style={{ fontSize: '0.9rem', marginTop: '4px' }}>
-                          A hidden iframe loads the document and opens the browser's native print preview dialog. Your paper size and color preferences are read automatically. Verify your printer is selected, toggle double-sided printing if needed, and click <strong>"Print"</strong>!
+                          The Print button opens your authorized document. Choose your connected printer and match the requested page range, paper size, colour and duplex settings in the printer dialog. Mark the order Completed only after the printout is finished.
                         </p>
                       </div>
                     </div>

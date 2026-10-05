@@ -1,114 +1,54 @@
-import crypto from 'crypto';
-import { createClient } from '@supabase/supabase-js';
+import crypto from 'node:crypto';
+import { db, BUCKET, fail, body } from './_lib/security.js';
+import { expireWaitingOrder, deleteOrderFiles } from './_lib/queue-cleanup.js';
 
-const supabaseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
-const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-const cronSecret = process.env.CRON_SECRET;
-
-export default async function handler(req, res) {
-  if (req.method !== 'GET' && req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method Not Allowed' });
-  }
-
-  // 1. Mandatory CRON_SECRET validation
-  if (!cronSecret) {
-    console.error('[cleanup] Server security configuration error: CRON_SECRET is not configured.');
-    return res.status(500).json({ error: 'Server security configuration error: CRON_SECRET is not configured.' });
-  }
-
-  const authHeader = req.headers.authorization || req.headers.Authorization || '';
-  if (!authHeader.startsWith('Bearer ')) {
-    return res.status(401).json({ error: 'Unauthorized: Missing or malformed authorization header.' });
-  }
-
-  const providedToken = authHeader.slice(7).trim();
-  const providedBuf = Buffer.from(providedToken, 'utf8');
-  const expectedBuf = Buffer.from(cronSecret.trim(), 'utf8');
-
-  if (providedBuf.length !== expectedBuf.length || !crypto.timingSafeEqual(providedBuf, expectedBuf)) {
-    return res.status(401).json({ error: 'Unauthorized: Invalid cron secret.' });
-  }
-
-  if (!supabaseUrl || !serviceRoleKey) {
-    return res.status(500).json({ error: 'Server database configuration error: missing Supabase credentials.' });
-  }
-
+export default async function handler(req,res) {
+  res.setHeader('Cache-Control','private, no-store');
+  res.setHeader('X-Robots-Tag','noindex, nofollow');
   try {
-    const supabase = createClient(supabaseUrl, serviceRoleKey, {
-      auth: { autoRefreshToken: false, persistSession: false }
-    });
-    const fiveMinutesAgoMs = Date.now() - 5 * 60 * 1000;
-    
-    // Calculate midnight timestamp for daily database order reset
-    const now = new Date();
-    const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate()).toISOString();
-
-    let deletedFilesCount = 0;
-    let deletedOrdersCount = 0;
-
-    // 1. Storage Cleanup: Delete customer document files older than 5 minutes from 'print-jobs' bucket
-    const { data: shopFolders, error: listErr } = await supabase.storage
-      .from('print-jobs')
-      .list('');
-
-    if (shopFolders && shopFolders.length > 0) {
-      for (const folder of shopFolders) {
-        if (folder.name) {
-          const { data: files } = await supabase.storage
-            .from('print-jobs')
-            .list(folder.name);
-
-          if (files && files.length > 0) {
-            const filesToRemove = [];
-            for (const file of files) {
-              const fileCreated = new Date(file.created_at || file.updated_at || file.last_accessed_at || Date.now()).getTime();
-              if (fileCreated < fiveMinutesAgoMs) {
-                filesToRemove.push(`${folder.name}/${file.name}`);
-              }
-            }
-
-            if (filesToRemove.length > 0) {
-              const { error: removeErr } = await supabase.storage
-                .from('print-jobs')
-                .remove(filesToRemove);
-
-              if (!removeErr) {
-                deletedFilesCount += filesToRemove.length;
-              }
-            }
-          }
-        }
-      }
+    if (!['GET','POST'].includes(req.method)) throw fail(405,'Method not allowed.');
+    const expected=process.env.PRINT_CLEANUP_SECRET || process.env.CRON_SECRET;
+    if (!expected) throw fail(503,'Cleanup configuration unavailable.');
+    const supplied=String(req.headers.authorization||'').replace(/^Bearer /,'');
+    const a=Buffer.from(supplied),b=Buffer.from(expected);
+    if(a.length!==b.length||!crypto.timingSafeEqual(a,b)) throw fail(401,'Unauthorized.');
+    const client=db();
+    if(req.method==='POST'&&body(req).configure===true) {
+      const {error}=await client.rpc('configure_print_cleanup',{p_secret:expected});
+      if(error) throw fail(503,'Cleanup scheduler configuration failed.');
+      return res.json({success:true,scheduled:'every minute',retentionMinutes:10});
     }
-
-    // 2. Daily Database Order Reset: Delete active order records created before 12 AM today
-    const { data: oldOrders } = await supabase
-      .from('orders')
-      .select('id')
-      .lt('created_at', startOfToday);
-
-    if (oldOrders && oldOrders.length > 0) {
-      const oldIds = oldOrders.map(o => o.id);
-      const { error: deleteErr } = await supabase
-        .from('orders')
-        .delete()
-        .in('id', oldIds);
-
-      if (!deleteErr) {
-        deletedOrdersCount = oldIds.length;
-      }
+    const now=new Date(),cutoff=new Date(now.getTime()-600000).toISOString();
+    let deletedFilesCount=0,failures=0,expiredOrdersCount=0;
+    const {data:waiting,error:waitingError}=await client.from('orders').select('id,shop_id,file_path,status,created_at,print_options').eq('status','Pending').lte('created_at',cutoff).is('file_deleted_at',null).order('created_at').limit(50);
+    if(waitingError) throw fail(503,'Unable to load expired queue entries.');
+    for(const order of waiting||[]) {
+      try { if(await expireWaitingOrder(client,order,now.getTime())) expiredOrdersCount++; }
+      catch { failures++; }
     }
-
-    return res.status(200).json({
-      success: true,
-      message: '5-minute file storage cleanup and daily 12 AM database order reset completed.',
-      deletedFilesCount,
-      deletedOrdersCount,
-      timestamp: new Date().toISOString()
-    });
-  } catch (err) {
-    console.error('[cleanup] Execution error:', err);
-    return res.status(500).json({ error: err.message || 'Server error during cleanup execution.' });
-  }
+    // Expired waiting files are eligible immediately, including failed deletion
+    // retries. Manual Done/Cancel still gets the existing ten-minute retention.
+    const {data:orders,error}=await client.from('orders').select('id,shop_id,file_path').in('status',['Completed','Cancelled']).or(`completed_at.lte.${cutoff},and(status.eq.Cancelled,print_options->>queueExpiredAt.not.is.null)`).is('file_deleted_at',null).order('completed_at').limit(50);
+    if(error) throw fail(503,'Unable to load cleanup candidates.');
+    for(const order of orders||[]) {
+      try { deletedFilesCount+=await deleteOrderFiles(client,order,now.getTime()); }
+      catch { failures++; }
+    }
+    // Re-sweep expired upload capabilities, preserving any active order.
+    const {data:intents,error:intentError}=await client.from('print_upload_intents').select('id,shop_id,object_key,order_id').lt('expires_at',cutoff).is('cleaned_at',null).order('expires_at').limit(50);
+    if(intentError) throw fail(503,'Unable to load expired uploads.');
+    for(const intent of intents||[]) {
+      if(intent.order_id) {
+        const {data:order,error:lookupError}=await client.from('orders').select('status,file_deleted_at').eq('id',intent.order_id).maybeSingle();
+        if(lookupError){failures++;continue;}
+        if(order&&!order.file_deleted_at) continue;
+      }
+      const {error:removeError}=await client.storage.from(BUCKET).remove([intent.object_key]);
+      if(removeError){failures++;continue;}
+      const {error:markError}=await client.from('print_upload_intents').update({cleaned_at:now.toISOString()}).eq('id',intent.id);
+      if(markError){failures++;continue;}
+      deletedFilesCount++;
+    }
+    return res.status(failures?503:200).json({success:failures===0,deletedFilesCount,expiredOrdersCount,failures,deletedOrdersCount:0,retentionMinutes:10,queueWaitMinutes:10});
+  }catch(error){return res.status(error.status||503).json({error:error.status?error.message:'Cleanup failed.'});}
 }
-

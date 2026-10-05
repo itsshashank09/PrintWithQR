@@ -1,11 +1,25 @@
 {
-  "rewrites": [
-    { "source": "/((?!api/).*)", "destination": "/index.html" }
-  ],
-  "crons": [
+  "buildCommand": "npm run build",
+  "outputDirectory": "dist",
+  "installCommand": "npm ci",
+  "headers": [
     {
-      "path": "/api/cleanup",
-      "schedule": "0 0 * * *"
+      "source": "/api/:path*",
+      "headers": [
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow, nosnippet, noimageindex"
+        },
+        {
+          "key": "Cache-Control",
+          "value": "private, no-store"
+        }
+      ]
     }
-  ]
+  ],
+  "git": {
+    "deploymentEnabled": {
+      "main": false
+    }
+  }
 }

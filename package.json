@@ -4,10 +4,34 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "cd frontend && npm install && npm run build"
+    "setup": "npm ci && npm --prefix frontend ci",
+    "dev": "node scripts/vercel.mjs dev --cwd frontend --listen 3000",
+    "dev:ui": "npm --prefix frontend run dev",
+    "build": "npm --prefix frontend run build",
+    "lint": "npm --prefix frontend run lint",
+    "test": "node --import ./tests/offline-env.mjs frontend/tests/security_tests.mjs && node tests/secure-workflow.test.mjs && node tests/customer-workflow.test.mjs && node tests/image-groups.test.mjs && node tests/file-access.test.mjs && node tests/zip-upload.test.mjs && node tests/queue-expiry.test.mjs",
+    "check:api": "node scripts/check-api-sync.mjs",
+    "test:seo": "node tests/indexing.test.mjs",
+    "check": "npm run check:api && npm run lint && npm test && npm run test:seo && npm run build",
+    "doctor": "node scripts/doctor.mjs",
+    "gh": "node scripts/gh.mjs",
+    "vercel": "node scripts/vercel.mjs",
+    "supabase": "supabase",
+    "deploy:preview": "node scripts/vercel.mjs --cwd frontend",
+    "test:integration": "node scripts/verify-integration.mjs"
+  },
+  "engines": {
+    "node": ">=22.12.0 <25"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.43.0",
+    "@vercel/functions": "3.9.9",
+    "@zip.js/zip.js": "2.23.0",
+    "pdf-lib": "1.17.1",
     "razorpay": "^2.9.2"
+  },
+  "devDependencies": {
+    "supabase": "2.117.0",
+    "vercel": "59.25.4"
   }
 }

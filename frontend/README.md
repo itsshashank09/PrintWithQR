@@ -1,14 +1,7 @@
 # PrintWithQR frontend
 
-The React interface for customers and print shops. The [main README](../README.md) describes the product and the [setup guide](../docs/setup.md) covers its API and Supabase requirements.
+React/Vite customer, shop and admin screens, plus build-generated public pages. Start from the [repository README](../README.md) for the complete app, database setup and verification.
 
-```sh
-npm ci
-npm run dev
-npm run build
-npm run lint
-```
+From the repository root, `npm run setup` installs both lockfiles, `npm run dev:ui` starts Vite, and `npm run dev` starts the Vercel API development environment. Use Node.js 24 and a separate development Supabase project.
 
-Use Node.js 22.12+ in the Node 22 release line. Vite serves the interface on port 5173 by default. Its `/api` proxy currently points to port 5000; the repository does not include a standalone server listening there.
-
-The `api/` directory here contains copies of the root serverless handlers for deployments whose project root is `frontend/`. Keep both copies in sync until the deployment structure is consolidated.
+`api/` mirrors the root handlers for a frontend-root Vercel deployment. Run `npm run check:api` from the root before changing either copy. `vercel.json` disables main-branch automatic deployment; production releases use the manual GitHub workflow.

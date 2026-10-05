@@ -1,13 +1,25 @@
 {
-  "buildCommand": "cd frontend && npm install && npm run build",
+  "buildCommand": "npm --prefix frontend run build",
   "outputDirectory": "frontend/dist",
-  "rewrites": [
-    { "source": "/((?!api/).*)", "destination": "/index.html" }
-  ],
-  "crons": [
+  "headers": [
     {
-      "path": "/api/cleanup",
-      "schedule": "0 0 * * *"
+      "source": "/api/:path*",
+      "headers": [
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow, nosnippet, noimageindex"
+        },
+        {
+          "key": "Cache-Control",
+          "value": "private, no-store"
+        }
+      ]
     }
-  ]
+  ],
+  "git": {
+    "deploymentEnabled": {
+      "main": false
+    }
+  },
+  "installCommand": "npm ci && npm --prefix frontend ci"
 }

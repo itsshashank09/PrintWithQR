@@ -15,6 +15,8 @@ function setCors(req, res) {
     process.env.ALLOWED_ORIGIN,
     'https://www.printwithqr.in',
     'https://printwithqr.in',
+    'https://printwithqr.com',
+    'https://www.printwithqr.com',
     'http://localhost:5173',
     'http://localhost:3000'
   ].filter(Boolean);

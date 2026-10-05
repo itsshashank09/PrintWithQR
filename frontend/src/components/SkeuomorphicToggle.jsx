@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useId } from 'react';
 import './SkeuomorphicToggle.css';
 
 /**
@@ -35,48 +35,40 @@ export const SkeuomorphicToggle = ({
   className = '',
   style = {}
 }) => {
-  const generatedId = id || `skeuo-toggle-${Math.random().toString(36).slice(2, 9)}`;
+  const stableId = useId();
+  const generatedId = id || `skeuo-toggle-${stableId}`;
 
   const handleToggle = (e) => {
     if (disabled) return;
     if (onChange) {
-      const nextChecked = !checked;
+      const nextChecked = e.target.checked;
       onChange(nextChecked, e);
-    }
-  };
-
-  const handleKeyDown = (e) => {
-    if (disabled) return;
-    if (e.key === ' ' || e.key === 'Enter') {
-      e.preventDefault();
-      handleToggle(e);
     }
   };
 
   const modeClass = mode === 'dark' ? 'mode-dark' : mode === 'light' ? 'mode-light' : '';
 
   return (
-    <div 
+    <label
       className={`skeuo-toggle-wrapper skeuo-size-${size} ${modeClass} ${disabled ? 'disabled' : ''} ${className}`}
       style={style}
-      onClick={handleToggle}
+      htmlFor={generatedId}
     >
       <input
         type="checkbox"
         id={generatedId}
         name={name}
         checked={Boolean(checked)}
-        onChange={() => {}} // handled via wrapper onClick
+        onChange={handleToggle}
         disabled={disabled}
         aria-label={ariaLabel || (typeof label === 'string' ? label : 'Toggle Switch')}
         role="switch"
         aria-checked={Boolean(checked)}
         className="skeuo-toggle-input"
         tabIndex={disabled ? -1 : 0}
-        onKeyDown={handleKeyDown}
       />
 
-      <div 
+      <span
         className={`skeuo-toggle-track ${checked ? 'checked' : ''}`}
         aria-hidden="true"
       >
@@ -87,21 +79,20 @@ export const SkeuomorphicToggle = ({
           {offIcon || 'O'}
         </span>
 
-        <div className="skeuo-toggle-thumb">
-          <div className="skeuo-thumb-led" />
-          <div className="skeuo-thumb-grip">
+        <span className="skeuo-toggle-thumb">
+          <span className="skeuo-thumb-led" />
+          <span className="skeuo-thumb-grip">
             <span className="skeuo-thumb-grip-line" />
             <span className="skeuo-thumb-grip-line" />
             <span className="skeuo-thumb-grip-line" />
-          </div>
-        </div>
-      </div>
+          </span>
+        </span>
+      </span>
 
       {(label || description) && (
-        <div style={{ display: 'flex', flexDirection: 'column' }}>
+        <span style={{ display: 'flex', flexDirection: 'column' }}>
           {label && (
-            <label 
-              htmlFor={generatedId} 
+            <span
               style={{ 
                 fontWeight: 600, 
                 fontSize: size === 'sm' ? '0.85rem' : size === 'lg' ? '1.05rem' : '0.95rem',
@@ -112,10 +103,10 @@ export const SkeuomorphicToggle = ({
               }}
             >
               {label}
-            </label>
+            </span>
           )}
           {description && (
-            <span 
+            <span
               style={{ 
                 fontSize: size === 'sm' ? '0.72rem' : '0.78rem', 
                 color: 'var(--text-secondary)', 
@@ -126,9 +117,9 @@ export const SkeuomorphicToggle = ({
               {description}
             </span>
           )}
-        </div>
+        </span>
       )}
-    </div>
+    </label>
   );
 };
 
