@@ -1,16 +1,14 @@
-# React + Vite
+# PrintWithQR frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+The React interface for customers and print shops. The [main README](../README.md) describes the product and the [setup guide](../docs/setup.md) covers its API and Supabase requirements.
 
-Currently, two official plugins are available:
+```sh
+npm ci
+npm run dev
+npm run build
+npm run lint
+```
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+Use Node.js 22.12+ in the Node 22 release line. Vite serves the interface on port 5173 by default. Its `/api` proxy currently points to port 5000; the repository does not include a standalone server listening there.
 
-## React Compiler
-
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the Oxlint configuration
-
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and Oxlint's TypeScript related rules in your project.
+The `api/` directory here contains copies of the root serverless handlers for deployments whose project root is `frontend/`. Keep both copies in sync until the deployment structure is consolidated.

@@ -1,79 +1,77 @@
 # PrintWithQR
 
-PrintWithQR is a modern, contactless printing platform that bridges the gap between local print shops and their customers. 
+A web app that lets customers send documents to a local print shop by scanning its QR code. The customer chooses print settings in the browser, and the shop manages the order from a dashboard.
 
-By simply scanning a QR code at a participating shop, customers can instantly upload documents, configure print settings (B&W/Color, page ranges), and place print orders directly from their mobile browser without installing any apps.
+**[Visit PrintWithQR](https://www.printwithqr.in/)** · [Setup](docs/setup.md) · [Architecture](docs/architecture.md) · [Verification](docs/verification.md)
 
-## 🚀 Features
+![PrintWithQR landing page](docs/screenshots/landing.png)
 
-### For Shop Owners (Admins)
-- **Instant Setup**: Register your shop and instantly get a unique QR Code poster to print and stick on your counter.
-- **Order Dashboard**: A real-time dashboard to manage incoming print requests, view files, and mark orders as complete.
-- **Subscription Plans**: 
-  - **Free Trial**: New shops get a limited free trial (10 prints) to test the platform.
-  - **Premium Plans**: ₹99/month or ₹599/year for unlimited prints, custom shop branding, and full analytics.
-- **Shop Configuration**: Set custom rates for B&W and Color printing.
+## What it does
 
-### For Customers
-- **No App Required**: Works entirely in the mobile web browser.
-- **Easy Uploads**: Support for PDF, PNG, JPG, and JPEG files (up to 100MB per file).
-- **Print Preview**: Built-in document previewer to review pages before ordering.
-- **Custom Print Ranges**: Choose all pages, odd/even only, or a custom range (e.g., `1-3, 5, 7-10`).
-- **Fraud Prevention**: Smart device-fingerprinting prevents abuse of the free trial system.
+- Gives each shop a QR code linked to its upload page.
+- Accepts PDFs and images, with document preview, copies, colour options and page selection. The browser applies a 100 MB limit per file.
+- Shows incoming orders in a shop dashboard using Supabase Realtime.
+- Supports shop registration, sign-in, print rates and subscription plans.
+- Creates Razorpay subscription orders and checks payment signatures on the server.
+- Issues short-lived, shop-specific tokens for submitting print orders.
 
-## 🛠 Tech Stack
+Customers still need a print shop to fulfil the order. This repository does not include a desktop printer agent or direct printer integration.
 
-- **Frontend**: React.js, Vite, Context API
-- **Styling**: Vanilla CSS, Modern Glassmorphism, CSS Animations
-- **Backend / Database**: [Supabase](https://supabase.com/) (PostgreSQL, Authentication, Realtime Subscriptions, Storage)
-- **Deployment**: [Vercel](https://vercel.com/) (Frontend Hosting)
-- **Security**: FingerprintJS (Device Fingerprinting & Anti-Fraud)
+## Stack
 
-## 💻 Running Locally
+| Part | Technologies |
+| --- | --- |
+| Interface | React, JavaScript, React Router, Vite, CSS, Lucide icons |
+| API | JavaScript serverless handlers on Vercel |
+| Data | Supabase Postgres, Auth, Storage and Realtime |
+| Payments | Razorpay Checkout and REST API |
+| Other integrations | QRCode, FingerprintJS, BotD, PDF.js loaded by the page |
 
-### Prerequisites
-- Node.js (v18+)
-- A Supabase Project (with URL and Anon Key)
+## Try it locally
 
-### Setup Instructions
+Use Node.js 22.12 or newer within the Node 22 release line.
 
-1. **Clone the repository**
-   ```bash
-   git clone https://github.com/itsshashank09/PrintWithQR.git
-   cd PrintWithQR
-   ```
+```sh
+git clone https://github.com/itsshashank09/PrintWithQR.git
+cd PrintWithQR/frontend
+npm ci
+npm run dev
+```
 
-2. **Install dependencies**
-   Navigate into the frontend directory and install the packages:
-   ```bash
-   cd frontend
-   npm install
-   ```
+Open the URL Vite prints, normally `http://localhost:5173`. This starts the **frontend only**. Shop registration, payments and order submission also need the API and a configured Supabase project. See [setup](docs/setup.md) for the environment variables and the current database setup gap.
 
-3. **Environment Variables**
-   Create a `.env` file in the `frontend` folder and add your Supabase credentials:
-   ```env
-   VITE_SUPABASE_URL=your_supabase_project_url
-   VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
-   ```
+```sh
+npm run build
+npm run lint
+```
 
-4. **Start the Development Server**
-   ```bash
-   npm run dev
-   ```
-   The app will be available at `http://localhost:5173`.
+## Code worth reading
 
-## 🗄️ Database Schema
+- [`api/create-print-order.js`](api/create-print-order.js): signed order tokens, subscription checks and server-side price calculation.
+- [`api/verify-payment.js`](api/verify-payment.js): HMAC verification and payment-order lookup.
+- [`frontend/src/pages/Upload.jsx`](frontend/src/pages/Upload.jsx): file preparation, preview and order submission.
+- [`frontend/src/pages/Dashboard.jsx`](frontend/src/pages/Dashboard.jsx): order updates, file access and the shop workflow.
 
-The platform relies on a PostgreSQL schema managed by Supabase. To set up the database, run the SQL commands found in `schema_update.sql` in your Supabase SQL Editor. 
-Key tables include:
-- `shops` (Shop details, owner references, subscription status)
-- `orders` (Print jobs, file URLs, customer names, status)
-- `subscriptions` (Payment tracking and plan details)
-- `device_logs` (Security and free-trial tracking)
+## Repository layout
 
-## 🔒 Security & Rate Limiting
-To prevent abuse of the "Free Trial" mode, PrintWithQR implements robust device fingerprinting. The platform generates a unique hardware hash for the customer's device. If a customer attempts to place an order, the system checks the `device_logs` table to ensure they haven't exceeded the free trial limits, even if they clear their browser cache or use Incognito Mode!
+```text
+api/                  Serverless handlers when deploying from the repo root
+frontend/
+  api/                Handler copies for deployments rooted in frontend/
+  src/pages/          Customer, shop and admin screens
+  src/utils/          Payment, fingerprint and cleanup helpers
+  public/             Branding, print page and crawler files
+tests/                Offline API checks
+docs/                 Setup, architecture and verification notes
+schema_update.sql     An incremental update, not a complete database schema
+```
 
-## 📜 License
-This project is proprietary and intended for commercial deployment under the PrintWithQR brand.
+## Current limitations
+
+A fresh installation is not yet fully reproducible: the base database schema and Storage policies are not included. Client route guards also do not replace server authorization or database policies.
+
+Fingerprinting supplies a browser identifier and bot signals; it is not a permanent hardware identity or a guarantee against abuse. Some order rate limits and retry tracking use process memory, so they do not coordinate across serverless instances. Storage access and document retention need review before handling sensitive files. See the [architecture notes](docs/architecture.md) for details.
+
+## Licence
+
+The project is proprietary, as stated in the original repository documentation. No open-source licence is granted by this README.

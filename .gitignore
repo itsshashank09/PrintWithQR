@@ -17,3 +17,6 @@ backend/uploads/
 
 .vercel
 .env*
+
+# Keep blank configuration templates versioned
+!.env.example

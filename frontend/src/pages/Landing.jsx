@@ -225,7 +225,7 @@ const Landing = () => {
                   </div>
 
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
-                    <Shield size={14} style={{ color: 'var(--accent)' }} /> File auto-purges from storage in 5 minutes
+                    <Shield size={14} style={{ color: 'var(--accent)' }} /> Files are removed by scheduled cleanup
                   </div>
                 </div>
               )}
@@ -253,7 +253,7 @@ const Landing = () => {
 
               {/* Bottom Floating Privacy Badge */}
               <div style={{ position: 'absolute', bottom: '-14px', left: '-10px', padding: '6px 14px', borderRadius: '20px', background: 'var(--bg)', color: 'var(--text-primary)', fontSize: '0.75rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '6px', boxShadow: 'var(--shadow-extrude-sm)', zIndex: 10, margin: 0 }}>
-                <Shield size={14} style={{ color: 'var(--accent)' }} /> 100% Private 5-Min Storage Purge
+                <Shield size={14} style={{ color: 'var(--accent)' }} /> Scheduled File Cleanup
               </div>
 
             </div>
@@ -289,8 +289,8 @@ const Landing = () => {
               <Shield size={22} />
             </div>
             <div>
-              <div style={{ fontWeight: 700, fontSize: '0.92rem' }}>5-Min Data Purge</div>
-              <div style={{ fontSize: '0.78rem', color: 'var(--text-secondary)' }}>Automatic document wipe</div>
+              <div style={{ fontWeight: 700, fontSize: '0.92rem' }}>Scheduled Cleanup</div>
+              <div style={{ fontSize: '0.78rem', color: 'var(--text-secondary)' }}>Temporary document storage</div>
             </div>
           </div>
 
@@ -371,9 +371,9 @@ const Landing = () => {
               <div style={{ display: 'inline-flex', width: '44px', height: '44px', borderRadius: 'var(--radius-sm)', background: 'var(--accent-light)', color: 'var(--accent)', alignItems: 'center', justifyContent: 'center' }}>
                 <Shield size={22} />
               </div>
-              <h3 style={{ margin: 0 }}>5-Minute Privacy Purge</h3>
+              <h3 style={{ margin: 0 }}>Scheduled Document Cleanup</h3>
               <p style={{ fontSize: '0.9rem', margin: 0 }}>
-                Customer documents (Aadhaar, Marksheets, Contracts) are automatically deleted from server storage 5 minutes after upload for 100% privacy compliance.
+                Uploaded files are temporary. Scheduled cleanup removes older documents; the deletion time depends on the configured cleanup schedule.
               </p>
             </div>
 
@@ -523,7 +523,7 @@ const Landing = () => {
                 Q: How does document privacy work?
               </h3>
               <p style={{ fontSize: '0.92rem', margin: 0 }}>
-                We prioritize user privacy. All uploaded documents (PDFs, images) are automatically deleted from server storage 5 minutes after submission, ensuring private customer records stay confidential.
+                Uploaded documents are stored temporarily and removed by scheduled cleanup. Deletion is not guaranteed exactly five minutes after upload. Ask your shop about its cleanup schedule before uploading sensitive documents.
               </p>
             </div>
 
